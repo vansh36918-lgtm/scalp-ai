@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Expose port 7860 for Hugging Face Spaces
-EXPOSE 7860
+# Expose port
+EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "scalp_site.wsgi:application"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8000} scalp_site.wsgi:application"]
