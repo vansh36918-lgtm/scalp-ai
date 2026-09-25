@@ -1,0 +1,131 @@
+{% extends "detector/base.html" %}
+
+{% block title %}Sign In — ScalpAI Clinical Portal{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-container {
+        max-width: 440px;
+        margin: 50px auto;
+        background: rgba(18, 22, 32, 0.95);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 24px;
+        padding: 44px 38px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 2px rgba(255, 255, 255, 0.08);
+    }
+    .auth-brand-icon {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #2563eb 0%, #0d9488 100%);
+        color: white;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        margin: 0 auto 20px;
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+    }
+    .auth-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 8px;
+        text-align: center;
+        letter-spacing: -0.5px;
+    }
+    .auth-desc {
+        font-size: 14px;
+        color: #94a3b8;
+        margin-bottom: 30px;
+        text-align: center;
+        line-height: 1.5;
+    }
+    .form-group {
+        margin-bottom: 22px;
+    }
+    .form-label {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #e2e8f0;
+        margin-bottom: 8px;
+    }
+    .form-input {
+        width: 100%;
+        padding: 13px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        font-size: 14.5px;
+        transition: all 0.2s ease;
+        background: rgba(10, 14, 23, 0.8);
+        color: #ffffff;
+    }
+    .form-input:focus {
+        border-color: #3b82f6;
+        background: rgba(15, 23, 42, 0.95);
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+    }
+    .btn-auth-submit {
+        width: 100%;
+        background: linear-gradient(135deg, #2563eb 0%, #0d9488 100%);
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 30px;
+        font-size: 15.5px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 20px rgba(37, 99, 235, 0.35);
+    }
+    .btn-auth-submit:hover { 
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
+    }
+    .auth-footer {
+        text-align: center;
+        margin-top: 24px;
+        font-size: 13.5px;
+        color: #94a3b8;
+    }
+    .auth-footer a {
+        color: #38bdf8;
+        text-decoration: none;
+        font-weight: 700;
+    }
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-brand-icon">🔬</div>
+    <h1 class="auth-title">Welcome Back</h1>
+    <p class="auth-desc">Sign in to access your saved clinical scans and history records</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label" for="username">Username</label>
+            <input type="text" id="username" name="username" class="form-input" placeholder="Enter your username" required autofocus>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn-auth-submit">Sign In to Portal</button>
+    </form>
+
+    <div class="auth-footer">
+        Don't have an account yet? <a href="{% url 'register' %}">Create account</a>
+    </div>
+</div>
+{% endblock %}

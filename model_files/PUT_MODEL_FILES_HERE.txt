@@ -1,0 +1,2 @@
+Copy scalp_model.h5 and class_names.json here after running train_model.py
+(see README.md Step 5).

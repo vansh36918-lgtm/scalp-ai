@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ScalpAI — Institute of AI Scalp & Hair Diagnostics{% endblock %}</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #0d9488;
+            --dark-bg: #090b10;
+            --card-dark: #121620;
+            --border-dark: rgba(255, 255, 255, 0.12);
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --accent-glow: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.15) 0%, rgba(13, 148, 136, 0.08) 50%, transparent 100%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+        
+        body { 
+            background-color: var(--dark-bg);
+            background-image: var(--accent-glow);
+            background-attachment: fixed;
+            color: var(--text-main); 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glow Spheres */
+        .glow-orb-1 {
+            position: absolute;
+            top: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1000px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, rgba(13, 148, 136, 0.05) 60%, transparent 80%);
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Institute of Health Header Navigation */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(9, 11, 16, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 16px 32px;
+        }
+        .header-inner {
+            max-width: 1320px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.6px;
+        }
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #2563eb 0%, #0d9488 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+        }
+        .brand-badge {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            background: rgba(37, 99, 235, 0.15);
+            color: #60a5fa;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            letter-spacing: 0.6px;
+        }
+
+        /* Live Status Indicator */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            padding: 6px 16px;
+            border-radius: 30px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse-ring 2s infinite cubic-bezier(0.66, 0, 0, 1);
+        }
+        @keyframes pulse-ring {
+            to { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            list-style: none;
+        }
+        .nav-link {
+            text-decoration: none;
+            color: #cbd5e1;
+            font-size: 14.5px;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+        .nav-link:hover, .nav-link.active { color: #ffffff; }
+
+        .btn-student-login {
+            background: #ffffff;
+            color: #090b10;
+            padding: 10px 24px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 800;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(255, 255, 255, 0.15);
+        }
+        .btn-student-login:hover {
+            background: #f1f5f9;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.25);
+        }
+        .btn-nav-outline {
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid var(--border-dark);
+            padding: 9px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn-nav-outline:hover { border-color: #ffffff; background: rgba(255,255,255,0.08); }
+
+        /* Main Container */
+        .main-wrapper {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 40px 32px;
+            flex: 1;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Alerts & Messages */
+        .messages { margin-bottom: 24px; }
+        .alert {
+            padding: 16px 24px;
+            border-radius: 16px;
+            font-size: 14.5px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(12px);
+        }
+        .alert-success { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.3); }
+        .alert-error { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(252, 165, 165, 0.3); }
+
+        /* Institute of Health Footer */
+        .footer {
+            background: rgba(9, 11, 16, 0.95);
+            border-top: 1px solid var(--border-dark);
+            padding: 48px 32px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: auto;
+            position: relative;
+            z-index: 1;
+        }
+        .footer-pills {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .footer-pill {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 6px 16px;
+            border-radius: 30px;
+            border: 1px solid var(--border-dark);
+        }
+        .footer-disclaimer {
+            max-width: 860px;
+            margin: 16px auto 0;
+            font-size: 12.5px;
+            line-height: 1.65;
+            color: #64748b;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="glow-orb-1"></div>
+
+    <!-- Institute of Health Dark Header -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="{% url 'upload' %}" class="brand">
+                <div class="brand-icon">🔬</div>
+                <div>ScalpAI</div>
+                <span class="brand-badge">Institute Edition</span>
+            </a>
+
+            <div class="status-pill">
+                <span class="status-dot"></span> EfficientNet-B0 Neural Engine Active
+            </div>
+
+            <ul class="nav-links">
+                <li><a href="{% url 'upload' %}" class="nav-link">Diagnostic Suite</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'dashboard' %}" class="nav-link">Scan History</a></li>
+                    {% if user.is_staff %}
+                        <li><a href="/admin/" target="_blank" class="nav-link" style="color: #818cf8;">Admin Panel &nearr;</a></li>
+                    {% endif %}
+                    <li><span style="font-size: 14px; color: var(--text-muted);">Hi, <b style="color: white;">{{ user.username }}</b></span></li>
+                    <li><a href="{% url 'logout' %}" class="btn-nav-outline">Log Out</a></li>
+                {% else %}
+                    <li><a href="/admin/" target="_blank" class="nav-link" style="color: #818cf8;">Admin Panel &nearr;</a></li>
+                    <li><a href="{% url 'login' %}" class="btn-nav-outline">Log In</a></li>
+                    <li><a href="{% url 'register' %}" class="btn-student-login"><span>⚡</span> Create Account</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </header>
+
+    <!-- Main Body Container -->
+    <div class="main-wrapper">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Institute of Health Footer -->
+    <footer class="footer">
+        <div class="footer-pills">
+            <span class="footer-pill">🔬 EfficientNet-B0 Deep CNN</span>
+            <span class="footer-pill">⚡ Test-Time Augmentation (TTA)</span>
+            <span class="footer-pill">🧬 Grad-CAM Visual Heatmaps</span>
+            <span class="footer-pill">📊 Objective Trichometry</span>
+        </div>
+        <div>&copy; 2026 ScalpAI Institute of Diagnostics &bull; Medical Computer Vision & Health Technology</div>
+        <p class="footer-disclaimer">
+            <b>Clinical Triage Notice:</b> ScalpAI is engineered strictly as an automated screening aid and clinical support system. Findings do not constitute a definitive medical diagnosis. Always consult a board-certified dermatologist for evaluation.
+        </p>
+    </footer>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
