@@ -2,7 +2,7 @@ import os
 import glob
 from PIL import Image
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, Http404, FileResponse
+from django.http import HttpResponse, Http404, FileResponse, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -12,6 +12,10 @@ from django.conf import settings
 from .ml_model import predict_image
 from .models import ScanRecord
 from .pdf_generator import generate_clinical_pdf, CONDITION_INFO
+
+
+def ping_view(request):
+    return JsonResponse({"status": "ok", "service": "ScalpAI", "awake": True})
 
 
 def upload_view(request):

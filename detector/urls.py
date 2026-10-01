@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path("", views.upload_view, name="upload"),
+    path("ping/", views.ping_view, name="ping"),
     path("report/<int:scan_id>/pdf/", views.download_pdf_view, name="download_pdf"),
     path("dashboard/", views.dashboard_view, name="dashboard"),
     path("sample-image/<str:class_name>/", views.sample_image_view, name="sample_image"),
