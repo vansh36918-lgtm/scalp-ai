@@ -215,8 +215,8 @@ def predict_image(pil_image, enable_tta=True):
     import tensorflow as tf
     from tensorflow.keras.applications.efficientnet import preprocess_input
 
-    # Downsample large smartphone photos to max 800px to guarantee RAM usage stays under 40MB on free cloud tiers
-    max_dim = 800
+    # Downsample large smartphone photos to max 600px to guarantee RAM usage stays under 30MB on free cloud tiers
+    max_dim = 600
     if max(pil_image.width, pil_image.height) > max_dim:
         pil_image = pil_image.copy()
         pil_image.thumbnail((max_dim, max_dim), Image.LANCZOS)
@@ -227,25 +227,23 @@ def predict_image(pil_image, enable_tta=True):
     orig_224 = pil_image.convert("RGB").resize((224, 224))
     arr_orig = preprocess_input(np.expand_dims(np.array(orig_224).astype("float32"), axis=0))
 
+    # Fast direct C++ tensor inference without Keras loop overhead
     if enable_tta:
-        # 1. Original
-        pred_1 = model.predict(arr_orig, verbose=0)[0]
+        pred_1 = model(arr_orig, training=False).numpy()[0]
         
-        # 2. Horizontal Flip
         flip_224 = orig_224.transpose(Image.FLIP_LEFT_RIGHT)
         arr_flip = preprocess_input(np.expand_dims(np.array(flip_224).astype("float32"), axis=0))
-        pred_2 = model.predict(arr_flip, verbose=0)[0]
+        pred_2 = model(arr_flip, training=False).numpy()[0]
 
-        # 3. 92% Center Crop
         w, h = pil_image.size
         cw, ch = int(w * 0.92), int(h * 0.92)
         crop_pil = pil_image.crop(((w-cw)//2, (h-ch)//2, (w+cw)//2, (h+ch)//2)).resize((224, 224))
         arr_crop = preprocess_input(np.expand_dims(np.array(crop_pil).astype("float32"), axis=0))
-        pred_3 = model.predict(arr_crop, verbose=0)[0]
+        pred_3 = model(arr_crop, training=False).numpy()[0]
 
         predictions = (pred_1 + pred_2 + pred_3) / 3.0
     else:
-        predictions = model.predict(arr_orig, verbose=0)[0]
+        predictions = model(arr_orig, training=False).numpy()[0]
 
     from .trichometry_engine import analyze_scalp_metrics, get_treatment_recommendation
 
@@ -290,7 +288,11 @@ def predict_image(pil_image, enable_tta=True):
     }
 
     # Generate Grad-CAM Attention Heatmap
-    gradcam_base64 = _compute_gradcam(pil_image, model, grad_model, top_index)
+    try:
+        gradcam_base64 = _compute_gradcam(pil_image, model, grad_model, top_index)
+    except Exception as e:
+        print("Grad-CAM generation notice:", e)
+        gradcam_base64 = None
 
     # Fetch Clinical Urgency Info
     urgency = CLINICAL_URGENCY.get(label, {
