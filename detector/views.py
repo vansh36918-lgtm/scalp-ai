@@ -62,6 +62,16 @@ def upload_view(request):
         CONFIDENCE_THRESHOLD = 50.0
         is_uncertain = confidence < CONFIDENCE_THRESHOLD
 
+        # Convert pil_image to base64 for reliable display in result template
+        import io
+        import base64
+        buf = io.BytesIO()
+        pil_image.save(buf, format="JPEG", quality=85)
+        image_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+
+        # Reset file pointer before saving to model ImageField
+        uploaded_file.seek(0)
+
         # Persist scan to database (fallback safely if db error occurs)
         try:
             scan_record = ScanRecord.objects.create(
@@ -72,7 +82,8 @@ def upload_view(request):
                 all_scores=all_scores,
                 is_uncertain=is_uncertain,
             )
-        except Exception:
+        except Exception as e:
+            print("ScanRecord creation notice:", e)
             scan_record = None
 
         sorted_scores = sorted(all_scores.items(), key=lambda x: x[1], reverse=True)
@@ -87,6 +98,7 @@ def upload_view(request):
             "detector/result.html",
             {
                 "scan_record": scan_record,
+                "image_base64": image_base64,
                 "label": cond_meta["title"],
                 "confidence": confidence,
                 "sorted_scores": sorted_scores,

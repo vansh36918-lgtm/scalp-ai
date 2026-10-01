@@ -296,12 +296,10 @@
     <div>
         <div class="card">
             <div class="img-grid">
-                {% if scan_record.image %}
                 <div class="img-box">
                     <span class="img-label">Clinical Photo</span>
-                    <img src="{{ scan_record.image.url }}" alt="Analyzed Scalp Image" class="scan-thumb">
+                    <img src="{% if scan_record and scan_record.image %}{{ scan_record.image.url }}{% else %}data:image/jpeg;base64,{{ image_base64 }}{% endif %}" alt="Analyzed Scalp Image" class="scan-thumb">
                 </div>
-                {% endif %}
                 {% if gradcam_base64 %}
                 <div class="img-box">
                     <span class="img-label">AI Attention (Grad-CAM)</span>
