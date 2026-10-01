@@ -148,9 +148,15 @@ def _load():
     global _model, _grad_model, _class_names
     if _model is None:
         import tensorflow as tf
+        try:
+            tf.config.threading.set_inter_op_parallelism_threads(1)
+            tf.config.threading.set_intra_op_parallelism_threads(1)
+        except Exception:
+            pass
+
         from tensorflow.keras.models import load_model
 
-        _model = load_model(settings.MODEL_PATH)
+        _model = load_model(settings.MODEL_PATH, compile=False)
         with open(settings.CLASS_NAMES_PATH) as f:
             _class_names = json.load(f)
 
