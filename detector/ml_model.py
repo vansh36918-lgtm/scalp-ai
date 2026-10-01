@@ -196,12 +196,12 @@ def _compute_gradcam(pil_image, model, grad_model, top_class_idx):
         cmap = plt.colormaps.get_cmap("jet")
         jet_colors = np.uint8(255 * cmap(heatmap_arr)[:, :, :3])
 
-        orig_np = np.array(pil_image.convert("RGB"))
-        superimposed = np.uint8(orig_np * 0.60 + jet_colors * 0.40)
+        orig_np = np.array(pil_image.convert("RGB")).astype(np.float32)
+        superimposed = np.clip(orig_np * 0.60 + jet_colors.astype(np.float32) * 0.40, 0, 255).astype(np.uint8)
         res_pil = Image.fromarray(superimposed)
 
         buf = io.BytesIO()
-        res_pil.save(buf, format="JPEG", quality=90)
+        res_pil.save(buf, format="JPEG", quality=85)
         return base64.b64encode(buf.getvalue()).decode("utf-8")
     except Exception as e:
         print("Grad-CAM generation error:", e)
@@ -214,6 +214,12 @@ def predict_image(pil_image, enable_tta=True):
     """
     import tensorflow as tf
     from tensorflow.keras.applications.efficientnet import preprocess_input
+
+    # Downsample large smartphone photos to max 800px to guarantee RAM usage stays under 40MB on free cloud tiers
+    max_dim = 800
+    if max(pil_image.width, pil_image.height) > max_dim:
+        pil_image = pil_image.copy()
+        pil_image.thumbnail((max_dim, max_dim), Image.LANCZOS)
 
     model, grad_model, class_names = _load()
 

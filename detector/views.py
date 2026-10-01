@@ -48,21 +48,32 @@ def upload_view(request):
             )
 
         # Run EfficientNet-B0 prediction with TTA, Grad-CAM, Urgency, Trichometry, and Treatment Plan
-        label, confidence, all_scores, gradcam_base64, urgency, trichometry, treatment = predict_image(pil_image)
+        try:
+            label, confidence, all_scores, gradcam_base64, urgency, trichometry, treatment = predict_image(pil_image)
+        except Exception as e:
+            print("Prediction error:", e)
+            return render(
+                request,
+                "detector/upload.html",
+                {"error": "An error occurred while analyzing the scalp image. Please try uploading another photo."}
+            )
 
         # Confidence threshold check
         CONFIDENCE_THRESHOLD = 50.0
         is_uncertain = confidence < CONFIDENCE_THRESHOLD
 
-        # Persist scan to database
-        scan_record = ScanRecord.objects.create(
-            user=request.user if request.user.is_authenticated else None,
-            image=uploaded_file,
-            predicted_label=label,
-            confidence=confidence,
-            all_scores=all_scores,
-            is_uncertain=is_uncertain,
-        )
+        # Persist scan to database (fallback safely if db error occurs)
+        try:
+            scan_record = ScanRecord.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                image=uploaded_file,
+                predicted_label=label,
+                confidence=confidence,
+                all_scores=all_scores,
+                is_uncertain=is_uncertain,
+            )
+        except Exception:
+            scan_record = None
 
         sorted_scores = sorted(all_scores.items(), key=lambda x: x[1], reverse=True)
         cond_meta = CONDITION_INFO.get(label, {
