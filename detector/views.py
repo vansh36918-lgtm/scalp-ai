@@ -23,12 +23,10 @@ def upload_view(request):
         uploaded_file = request.FILES["image"]
 
         try:
-            pil_image = Image.open(uploaded_file)
-            pil_image.verify()
-            # Reopen after verify
             uploaded_file.seek(0)
-            pil_image = Image.open(uploaded_file)
-        except Exception:
+            pil_image = Image.open(uploaded_file).convert("RGB")
+        except Exception as e:
+            print("Image open error:", e)
             return render(
                 request,
                 "detector/upload.html",
