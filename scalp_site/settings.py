@@ -11,6 +11,12 @@ ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
     "http://*.amazonaws.com",
+    "http://*.nip.io",
+    "http://*.sslip.io",
+    "http://*.duckdns.org",
+    "https://*.nip.io",
+    "https://*.sslip.io",
+    "https://*.duckdns.org",
     "http://16.4.73.252",
     "http://65.1.94.35",
     "http://15.252.123.76",
