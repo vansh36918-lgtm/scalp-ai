@@ -3,3 +3,6 @@ __pycache__/
 *.sqlite3
 staticfiles/
 generate_favicons.py
+*.pem
+scalp_aws_rsa*
+user-data.sh

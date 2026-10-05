@@ -118,10 +118,24 @@
         background: #2563eb;
         color: white;
     }
-    .empty-state {
-        text-align: center;
-        padding: 80px 24px;
-        color: #94a3b8;
+    .btn-primary {
+        background: #ffffff;
+        color: #090b10;
+        border: none;
+        padding: 12px 22px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
+    }
+    .btn-primary:hover {
+        background: #f1f5f9;
+        transform: translateY(-1px);
     }
 </style>
 {% endblock %}
@@ -132,7 +146,7 @@
         <h1 class="header-title">Diagnostic Screening History</h1>
         <p style="color: #94a3b8; font-size: 15px; margin-top: 6px;">Review historical scalp evaluations, differential diagnostic trends, and official PDF clinical reports.</p>
     </div>
-    <a href="{% url 'upload' %}" class="btn-student-login">
+    <a href="{% url 'upload' %}" class="btn-primary">
         <span>+</span> Run New Analysis
     </a>
 </div>
@@ -216,7 +230,7 @@
         <div style="font-size: 48px; margin-bottom: 14px;">📋</div>
         <h3 style="color: #ffffff; font-size: 20px; font-weight: 800; margin-bottom: 8px;">No Scans Recorded Yet</h3>
         <p style="font-size: 14.5px; margin-bottom: 24px; color: #94a3b8;">Upload your first scalp photograph to evaluate morphometrics and generate official PDF clinical reports.</p>
-        <a href="{% url 'upload' %}" class="btn-student-login">Run First Scan Now</a>
+        <a href="{% url 'upload' %}" class="btn-primary">Run First Scan Now</a>
     </div>
     {% endif %}
 </div>
