@@ -11,6 +11,7 @@ ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
     "http://*.amazonaws.com",
+    "http://65.1.94.35",
     "http://15.252.123.76",
     "http://127.0.0.1",
     "http://localhost",
