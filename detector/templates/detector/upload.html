@@ -1,61 +1,106 @@
 {% extends "detector/base.html" %}
 {% load static %}
 
-{% block title %}ScalpAI — Minimalist Scalp & Hair Diagnostics{% endblock %}
+{% block title %}ScalpAI — Scalp & Hair Diagnostic Analysis{% endblock %}
 
 {% block extra_head %}
 <style>
-    /* Minimalist Page Container */
-    .upload-container {
-        max-width: 680px;
-        margin: 20px auto 40px;
-        position: relative;
+    /* Full Background Video Layer */
+    .hero-video-bg-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: -10;
     }
 
-    .hero-header {
+    .hero-bg-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.42;
+        filter: brightness(0.8) contrast(1.1);
+        transition: opacity 0.5s ease;
+    }
+
+    .hero-video-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(9, 11, 16, 0.55) 0%, rgba(9, 11, 16, 0.90) 65%, #090b10 100%);
+    }
+
+    /* Main Container */
+    .upload-page-wrapper {
+        max-width: 840px;
+        margin: 20px auto 40px;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Hero Headline */
+    .hero-section {
         text-align: center;
         margin-bottom: 36px;
     }
-    
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #38bdf8;
+        background: rgba(56, 189, 248, 0.12);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        padding: 5px 14px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+    }
+
     .hero-title {
-        font-size: 38px;
+        font-size: 42px;
         font-weight: 800;
         letter-spacing: -1.2px;
         color: #ffffff;
-        margin-bottom: 12px;
         line-height: 1.15;
+        margin-bottom: 14px;
     }
-    
+
     .hero-title span {
         background: linear-gradient(135deg, #60a5fa 0%, #2dd4bf 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
-    .hero-subtitle {
-        font-size: 16px;
+    .hero-desc {
+        font-size: 16.5px;
         color: #94a3b8;
+        max-width: 620px;
+        margin: 0 auto;
         line-height: 1.6;
         font-weight: 500;
-        max-width: 540px;
-        margin: 0 auto;
     }
 
-    /* Luxury Minimalist Card */
+    /* Main Diagnostic Upload Card */
     .upload-card {
-        background: rgba(18, 22, 32, 0.92);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(18, 22, 32, 0.88);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 24px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        padding: 36px;
+        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6);
+        padding: 40px;
         position: relative;
     }
 
-    /* Mobile friendly Dropzone */
+    /* Dropzone */
     .dropzone {
-        border: 2px dashed rgba(255, 255, 255, 0.16);
+        border: 2px dashed rgba(255, 255, 255, 0.2);
         border-radius: 20px;
         padding: 48px 24px;
         text-align: center;
@@ -67,64 +112,72 @@
 
     .dropzone:hover, .dropzone.dragover {
         border-color: #60a5fa;
-        background: rgba(96, 165, 250, 0.05);
+        background: rgba(96, 165, 250, 0.06);
         transform: translateY(-2px);
     }
 
-    .icon-wrapper {
-        width: 72px;
-        height: 72px;
+    .drop-icon-box {
+        width: 76px;
+        height: 76px;
         margin: 0 auto 16px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 22px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 32px;
-        transition: transform 0.25s ease;
+        font-size: 34px;
+        transition: all 0.25s ease;
     }
 
-    .dropzone:hover .icon-wrapper {
+    .dropzone:hover .drop-icon-box {
         transform: scale(1.08);
-        border-color: rgba(96, 165, 250, 0.4);
+        border-color: rgba(96, 165, 250, 0.5);
+        background: rgba(96, 165, 250, 0.1);
     }
 
-    .drop-heading {
-        font-size: 18px;
+    .drop-title {
+        font-size: 19px;
         font-weight: 700;
         color: #ffffff;
         margin-bottom: 6px;
     }
 
     .drop-sub {
-        font-size: 13.5px;
+        font-size: 14px;
         color: #94a3b8;
     }
 
-    /* Preview State */
+    /* Preview Container */
     .preview-box {
         display: none;
         text-align: center;
     }
 
     .preview-img {
-        max-height: 280px;
+        max-height: 290px;
         max-width: 100%;
         border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
         margin-bottom: 16px;
         object-fit: cover;
+    }
+
+    .file-meta-info {
+        font-size: 13.5px;
+        color: #38bdf8;
+        font-weight: 700;
+        margin-bottom: 14px;
     }
 
     .btn-change {
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.15);
         color: #ffffff;
-        padding: 8px 20px;
+        padding: 9px 22px;
         border-radius: 12px;
-        font-size: 13px;
+        font-size: 13.5px;
         font-weight: 700;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -132,58 +185,86 @@
 
     .btn-change:hover {
         background: rgba(255, 255, 255, 0.18);
+        border-color: rgba(255, 255, 255, 0.3);
     }
 
-    /* Error Alert */
-    .alert-error {
-        background: rgba(239, 68, 68, 0.15);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        border-radius: 14px;
-        padding: 14px 18px;
-        color: #fca5a5;
-        font-size: 14px;
-        margin-bottom: 24px;
+    /* Optional Clinical Observations Checklist */
+    .symptoms-section {
+        margin-top: 28px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .symptoms-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #cbd5e1;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
+        gap: 8px;
+    }
+
+    .symptoms-grid {
+        display: flex;
+        flex-wrap: wrap;
         gap: 10px;
     }
 
-    /* Analyze Button */
+    .symptom-checkbox {
+        display: none;
+    }
+
+    .symptom-tag {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #94a3b8;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .symptom-checkbox:checked + .symptom-tag {
+        background: rgba(37, 99, 235, 0.25);
+        border-color: #60a5fa;
+        color: #ffffff;
+    }
+
+    /* Submit Button */
     .btn-submit {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 10px;
+        gap: 12px;
         width: 100%;
         background: #ffffff;
         color: #090b10;
         border: none;
-        padding: 16px 28px;
+        padding: 18px 28px;
         border-radius: 16px;
-        font-size: 16px;
+        font-size: 16.5px;
         font-weight: 800;
         cursor: pointer;
-        margin-top: 24px;
+        margin-top: 28px;
         transition: all 0.25s ease;
         box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
     }
 
-    .btn-submit:hover:not(:disabled) {
+    .btn-submit:hover {
         background: #f1f5f9;
         transform: translateY(-2px);
-        box-shadow: 0 8px 28px rgba(255, 255, 255, 0.25);
-    }
-
-    .btn-submit:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
+        box-shadow: 0 8px 30px rgba(255, 255, 255, 0.28);
     }
 
     .spinner {
         display: none;
         width: 20px;
         height: 20px;
-        border: 2px solid rgba(9, 11, 16, 0.2);
+        border: 2px solid rgba(9, 11, 16, 0.25);
         border-radius: 50%;
         border-top-color: #090b10;
         animation: spin 0.8s linear infinite;
@@ -191,31 +272,117 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Diagnostic Coverage Grid */
-    .coverage-section {
-        margin-top: 48px;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        padding-top: 36px;
+    /* Photo Capture Guidelines Box */
+    .guidelines-card {
+        background: rgba(18, 22, 32, 0.75);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 24px 28px;
+        margin-top: 32px;
     }
 
-    .coverage-title {
+    .guidelines-title {
+        font-size: 14px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .guidelines-list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .guideline-item {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .guideline-icon {
+        font-size: 20px;
+        margin-bottom: 6px;
+    }
+
+    .guideline-text {
+        font-size: 13px;
+        color: #94a3b8;
+        line-height: 1.45;
+    }
+
+    .guideline-text b {
+        color: #e2e8f0;
+    }
+
+    /* Diagnostic Process Steps */
+    .process-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-top: 40px;
+    }
+
+    .process-card {
+        background: rgba(18, 22, 32, 0.65);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        padding: 22px;
+    }
+
+    .step-num {
+        font-size: 12px;
+        font-weight: 800;
+        color: #38bdf8;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 8px;
+    }
+
+    .step-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 6px;
+    }
+
+    .step-desc {
+        font-size: 13px;
+        color: #94a3b8;
+        line-height: 1.5;
+    }
+
+    /* 15 Pathology Scope Grid */
+    .scope-section {
+        margin-top: 44px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 32px;
+    }
+
+    .scope-title {
         font-size: 13px;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.8px;
         color: #94a3b8;
-        margin-bottom: 18px;
+        margin-bottom: 16px;
         text-align: center;
     }
 
-    .condition-tags {
+    .scope-chips {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
         justify-content: center;
     }
 
-    .condition-tag {
+    .scope-chip {
         background: rgba(255, 255, 255, 0.04);
         border: 1px solid rgba(255, 255, 255, 0.08);
         padding: 6px 14px;
@@ -225,89 +392,175 @@
         color: #cbd5e1;
     }
 
-    /* Mobile optimization overrides */
+    /* Mobile Responsive Overrides */
+    @media (max-width: 768px) {
+        .guidelines-list, .process-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
     @media (max-width: 640px) {
-        .upload-container { margin: 10px auto 30px; }
-        .hero-title { font-size: 28px; letter-spacing: -0.5px; }
-        .hero-subtitle { font-size: 14.5px; }
+        .upload-page-wrapper { margin: 10px auto 30px; }
+        .hero-title { font-size: 30px; letter-spacing: -0.6px; }
+        .hero-desc { font-size: 14.5px; }
         .upload-card { padding: 22px 18px; border-radius: 20px; }
         .dropzone { padding: 36px 16px; border-radius: 16px; }
-        .icon-wrapper { width: 58px; height: 58px; font-size: 26px; margin-bottom: 12px; }
-        .drop-heading { font-size: 16px; }
-        .drop-sub { font-size: 12.5px; }
-        .btn-submit { padding: 14px 20px; font-size: 15px; border-radius: 14px; }
+        .drop-icon-box { width: 60px; height: 60px; font-size: 28px; margin-bottom: 12px; }
+        .drop-title { font-size: 17px; }
+        .btn-submit { padding: 15px 22px; font-size: 15.5px; border-radius: 14px; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="upload-container">
+<!-- Full Interface Subtle Background Video Layer -->
+<div class="hero-video-bg-container">
+    <video id="bgVideo" autoplay loop muted playsinline class="hero-bg-video">
+        <source src="{% static 'detector/videos/koolshooters_head_scalp.mp4' %}" type="video/mp4">
+        <source src="{% static 'detector/videos/hero_bg.mp4' %}" type="video/mp4">
+    </video>
+    <div class="hero-video-overlay"></div>
+</div>
 
-    <!-- Minimalist Hero Header -->
-    <div class="hero-header">
-        <h1 class="hero-title">Scalp & Hair <span>Diagnostics</span></h1>
-        <p class="hero-subtitle">
-            Upload a high-resolution photo of your scalp or hair for instant computer-vision analysis, morphometric trichometry, and targeted active care recommendations.
+<div class="upload-page-wrapper">
+
+    <!-- Hero Header -->
+    <div class="hero-section">
+        <div class="hero-badge">🔬 Scalp & Hair Diagnostic System</div>
+        <h1 class="hero-title">Dermatological Scalp <span>Analysis</span></h1>
+        <p class="hero-desc">
+            Upload a scalp photograph to analyze tissue morphometrics, quantify scalp redness %, detect flakiness severity, and receive targeted care recommendations.
         </p>
     </div>
 
     {% if error %}
-    <div class="alert-error">
+    <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 14px; padding: 16px 20px; color: #fca5a5; font-size: 14.5px; margin-bottom: 24px; display: flex; align-items: center; gap: 10px;">
         <span>⚠️</span>
         <div>{{ error }}</div>
     </div>
     {% endif %}
 
-    <!-- Sleek Upload Card -->
+    <!-- Upload Form Card -->
     <div class="upload-card">
         <form method="post" enctype="multipart/form-data" id="uploadForm">
             {% csrf_token %}
-            <input type="file" name="image" id="fileInput" accept="image/*" required style="display: none;">
+            <!-- Note: Required attribute omitted from hidden input to avoid silent Chrome validation block -->
+            <input type="file" name="image" id="fileInput" accept="image/*" style="display: none;">
 
             <!-- Dropzone -->
             <div class="dropzone" id="dropzone">
                 <div id="dropPrompt">
-                    <div class="icon-wrapper">📷</div>
-                    <div class="drop-heading">Tap or drag photo here</div>
-                    <div class="drop-sub">JPG, PNG, or WEBP up to 15MB</div>
+                    <div class="drop-icon-box">📷</div>
+                    <div class="drop-title">Tap to upload or drag & drop photo</div>
+                    <div class="drop-sub">JPEG, PNG, or WEBP (Clear, well-lit close-up)</div>
                 </div>
 
-                <!-- Preview State -->
+                <!-- Preview Box -->
                 <div class="preview-box" id="previewBox">
                     <img id="imagePreview" class="preview-img" src="" alt="Scalp Photo Preview">
+                    <div class="file-meta-info" id="fileMeta">Image Selected</div>
                     <div>
-                        <button type="button" class="btn-change" id="btnChange">Choose Different Photo</button>
+                        <button type="button" class="btn-change" id="btnChange">Change Photo</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Submit Button -->
+            <!-- Optional Clinical Observations Checklist -->
+            <div class="symptoms-section">
+                <div class="symptoms-label">
+                    <span>📋</span> Optional Clinical Notes (Select symptoms if present):
+                </div>
+                <div class="symptoms-grid">
+                    <label>
+                        <input type="checkbox" name="symptoms" value="redness" class="symptom-checkbox">
+                        <span class="symptom-tag">🔴 Scalp Redness</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptoms" value="flakiness" class="symptom-checkbox">
+                        <span class="symptom-tag">⚪ Flakiness / Scales</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptoms" value="thinning" class="symptom-checkbox">
+                        <span class="symptom-tag">📉 Hair Thinning</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptoms" value="itching" class="symptom-checkbox">
+                        <span class="symptom-tag">⚡ Itching / Irritation</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptoms" value="patches" class="symptom-checkbox">
+                        <span class="symptom-tag">⭕ Bald Patches</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Button -->
             <button type="submit" class="btn-submit" id="btnSubmit">
                 <span class="spinner" id="spinner"></span>
-                <span id="btnText">Select Photo to Begin</span>
+                <span id="btnText">Select Photo to Begin Analysis</span>
             </button>
         </form>
     </div>
 
-    <!-- Supported Diagnostic Classes Summary -->
-    <div class="coverage-section">
-        <div class="coverage-title">Supported Clinical Classifications (15 Conditions)</div>
-        <div class="condition-tags">
-            <span class="condition-tag">Alopecia Areata</span>
-            <span class="condition-tag">Scalp Psoriasis</span>
-            <span class="condition-tag">Seborrheic Dermatitis</span>
-            <span class="condition-tag">Folliculitis</span>
-            <span class="condition-tag">Pattern Baldness (AGA)</span>
-            <span class="condition-tag">Dandruff & Flaking</span>
-            <span class="condition-tag">Healthy Scalp Control</span>
-            <span class="condition-tag">Folliculitis Decalvans</span>
-            <span class="condition-tag">Traction Alopecia</span>
-            <span class="condition-tag">Trichotillomania</span>
-            <span class="condition-tag">Contact Dermatitis</span>
-            <span class="condition-tag">Head Lice (Pediculosis)</span>
-            <span class="condition-tag">Lichen Planopilaris</span>
-            <span class="condition-tag">Telogen Effluvium</span>
-            <span class="condition-tag">Tinea Capitis</span>
+    <!-- Photo Guidelines Box -->
+    <div class="guidelines-card">
+        <div class="guidelines-title">
+            <span>💡</span> Tips for Accurate Diagnostic Analysis
+        </div>
+        <div class="guidelines-list">
+            <div class="guideline-item">
+                <div class="guideline-icon">☀️</div>
+                <div class="guideline-text"><b>Good Lighting:</b> Take photo in bright natural light or focused artificial lighting.</div>
+            </div>
+            <div class="guideline-item">
+                <div class="guideline-icon">🔍</div>
+                <div class="guideline-text"><b>Focus & Distance:</b> Hold camera 4-6 inches from scalp for clear skin focus.</div>
+            </div>
+            <div class="guideline-item">
+                <div class="guideline-icon">💇</div>
+                <div class="guideline-text"><b>Expose Scalp:</b> Gently part hair to ensure the underlying scalp tissue is visible.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Process Workflow -->
+    <div class="process-grid">
+        <div class="process-card">
+            <div class="step-num">Step 01</div>
+            <div class="step-title">Upload Photo</div>
+            <div class="step-desc">Capture or choose a close-up photo of the scalp or affected area.</div>
+        </div>
+        <div class="process-card">
+            <div class="step-num">Step 02</div>
+            <div class="step-title">Morphometric Scan</div>
+            <div class="step-desc">System analyzes tissue patterns, redness %, and flakiness metrics.</div>
+        </div>
+        <div class="process-card">
+            <div class="step-num">Step 03</div>
+            <div class="step-title">Clinical Findings</div>
+            <div class="step-desc">Review differential diagnosis and download official PDF report.</div>
+        </div>
+    </div>
+
+    <!-- Supported Pathology Scope -->
+    <div class="scope-section">
+        <div class="scope-title">Supported Clinical Classifications (15 Pathology Classes)</div>
+        <div class="scope-chips">
+            <span class="scope-chip">Alopecia Areata</span>
+            <span class="scope-chip">Scalp Psoriasis</span>
+            <span class="scope-chip">Seborrheic Dermatitis</span>
+            <span class="scope-chip">Folliculitis</span>
+            <span class="scope-chip">Pattern Baldness (AGA)</span>
+            <span class="scope-chip">Dandruff & Flaking</span>
+            <span class="scope-chip">Healthy Scalp Control</span>
+            <span class="scope-chip">Folliculitis Decalvans</span>
+            <span class="scope-chip">Traction Alopecia</span>
+            <span class="scope-chip">Trichotillomania</span>
+            <span class="scope-chip">Contact Dermatitis</span>
+            <span class="scope-chip">Head Lice (Pediculosis)</span>
+            <span class="scope-chip">Lichen Planopilaris</span>
+            <span class="scope-chip">Telogen Effluvium</span>
+            <span class="scope-chip">Tinea Capitis</span>
         </div>
     </div>
 
@@ -321,13 +574,14 @@
     const dropPrompt = document.getElementById('dropPrompt');
     const previewBox = document.getElementById('previewBox');
     const imagePreview = document.getElementById('imagePreview');
+    const fileMeta = document.getElementById('fileMeta');
     const btnSubmit = document.getElementById('btnSubmit');
     const btnText = document.getElementById('btnText');
     const spinner = document.getElementById('spinner');
     const btnChange = document.getElementById('btnChange');
     const uploadForm = document.getElementById('uploadForm');
 
-    // Trigger file dialog on click
+    // Click dropzone to open file dialog (unless clicking change button)
     dropzone.addEventListener('click', (e) => {
         if (e.target !== btnChange && !btnChange.contains(e.target)) {
             fileInput.click();
@@ -339,14 +593,14 @@
         fileInput.click();
     });
 
-    // File input change handler
+    // File Selection Handler
     fileInput.addEventListener('change', () => {
         if (fileInput.files && fileInput.files[0]) {
             handleFileSelect(fileInput.files[0]);
         }
     });
 
-    // Drag and Drop handlers
+    // Drag and drop events
     ['dragenter', 'dragover'].forEach(name => {
         dropzone.addEventListener(name, (e) => {
             e.preventDefault();
@@ -370,25 +624,55 @@
 
     function handleFileSelect(file) {
         if (file.type && !file.type.startsWith('image/')) {
-            alert('Please select a valid image file (JPG, PNG, WEBP).');
+            alert('Please select a valid image file (JPEG, PNG, WEBP).');
             return;
         }
         const reader = new FileReader();
         reader.onload = (e) => {
             imagePreview.src = e.target.result;
+            fileMeta.textContent = `✓ Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
             dropPrompt.style.display = 'none';
             previewBox.style.display = 'block';
-            btnSubmit.disabled = false;
-            btnText.textContent = 'Analyze Scalp Photo';
+            btnText.textContent = 'Analyze Scalp Photo Now';
         };
         reader.readAsDataURL(file);
     }
 
-    // Form Submission state
-    uploadForm.addEventListener('submit', () => {
-        btnSubmit.disabled = true;
-        spinner.style.display = 'inline-block';
-        btnText.textContent = 'Analyzing Image...';
+    // Submit button click handler
+    btnSubmit.addEventListener('click', (e) => {
+        if (!fileInput.files || fileInput.files.length === 0) {
+            e.preventDefault();
+            fileInput.click();
+        }
     });
+
+    // Form Submit Event Handler
+    uploadForm.addEventListener('submit', (e) => {
+        if (!fileInput.files || fileInput.files.length === 0) {
+            e.preventDefault();
+            alert('Please select a scalp photo before submitting.');
+            return;
+        }
+        spinner.style.display = 'inline-block';
+        btnText.textContent = 'Processing Scalp Analysis...';
+    });
+
+    // Background Video Autoplay Handler
+    (function initVideo() {
+        const video = document.getElementById('bgVideo');
+        if (video) {
+            video.muted = true;
+            video.play().catch(err => {
+                console.log('Autoplay fallback listener:', err);
+                const playOnInteract = () => {
+                    video.play();
+                    window.removeEventListener('click', playOnInteract);
+                    window.removeEventListener('touchstart', playOnInteract);
+                };
+                window.addEventListener('click', playOnInteract);
+                window.addEventListener('touchstart', playOnInteract);
+            });
+        }
+    })();
 </script>
 {% endblock %}
