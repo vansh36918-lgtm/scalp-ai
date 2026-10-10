@@ -236,14 +236,11 @@ def verify_scalp_domain(pil_image, raw_max_prob):
     hsv = mcolors.rgb_to_hsv(arr / 255.0)
     h, s, v = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
 
-    # Rule A: Document / Website UI Screenshot Filter (Pure White Canvas > 25%)
+    # White Canvas Background Mask (Pure White / Light Gray UI background)
     white_bg_mask = (s < 0.08) & (v > 0.80)
     white_bg_ratio = float(np.mean(white_bg_mask))
 
-    if white_bg_ratio > 0.25:
-        return False, f"Screenshot or document background detected ({round(white_bg_ratio * 100, 1)}% white canvas)."
-
-    # Rule B: Non-biological Color Spectrum Filter (Vivid Cyans, Blues, Greens, Purples, Magentas > 30%)
+    # Non-Biological Color Spectrum Mask (Vivid Cyans, Blues, Greens, Purples, Magentas)
     non_bio_mask = (
         ((h >= 0.16) & (h <= 0.42) & (s > 0.18)) |  # Greens / Teals
         ((h >= 0.45) & (h <= 0.72) & (s > 0.18)) |  # Blues / Cyans
@@ -251,24 +248,38 @@ def verify_scalp_domain(pil_image, raw_max_prob):
     )
     non_bio_ratio = float(np.mean(non_bio_mask))
 
-    # Rule C: Real Human Scalp Skin Tone Mask (Fitzpatrick I-VI skin)
+    # Real Human Scalp Skin Tone Mask (Fitzpatrick I-VI skin)
     skin_mask = (((h <= 0.15) | (h >= 0.86)) & (s >= 0.08) & (v >= 0.15) & (v <= 0.98))
     skin_ratio = float(np.mean(skin_mask))
 
-    # Rule D: Dark Hair Shafts / Follicle Shadow Mask
+    # Dark Hair Shafts / Follicle Shadow Mask
     dark_hair_mask = (v < 0.32) & (s < 0.50)
     dark_hair_ratio = float(np.mean(dark_hair_mask))
 
-    # Rejection Logic
-    if non_bio_ratio > 0.30 and skin_ratio < 0.20:
+    tissue_ratio = skin_ratio + dark_hair_ratio
+
+    # Rule 1: UI Screenshot / Document Filter (High white canvas > 25% AND low skin tissue < 12%)
+    if white_bg_ratio > 0.25 and skin_ratio < 0.12:
+        return False, f"Document or UI screenshot canvas detected ({round(white_bg_ratio * 100, 1)}% white background, skin {round(skin_ratio * 100, 1)}%)."
+
+    # Rule 2: Digital Art / Wallpaper / Non-Scalp Scene Filter (High non-bio ratio > 30% AND low skin tissue < 15%)
+    if non_bio_ratio > 0.30 and skin_ratio < 0.15:
         return False, f"Non-biological color distribution ({round(non_bio_ratio * 100, 1)}% non-scalp tones, digital artwork/wallpaper)."
-    if aspect_ratio > 2.2 and skin_ratio < 0.25:
+
+    # Rule 3: Extreme Non-Biological Scene Filter (Extremely high non-bio ratio > 65%)
+    if non_bio_ratio > 0.65 and skin_ratio < 0.25:
+        return False, f"Dominant non-biological scene ({round(non_bio_ratio * 100, 1)}% non-scalp colors)."
+
+    # Rule 4: Aspect Ratio Filter (Panoramic wide banners > 2.2:1 with low skin tissue < 20%)
+    if aspect_ratio > 2.2 and skin_ratio < 0.20:
         return False, f"Panoramic banner or wallpaper aspect ratio ({round(aspect_ratio, 2)}:1)."
-    if skin_ratio < 0.08 and dark_hair_ratio < 0.15:
+
+    # Rule 5: Low Feature Density (Total tissue coverage < 10% or skin < 6% and hair < 10%)
+    if tissue_ratio < 0.10 or (skin_ratio < 0.06 and dark_hair_ratio < 0.10):
         return False, f"Low human scalp skin/hair feature density (skin {round(skin_ratio * 100, 1)}%, hair {round(dark_hair_ratio * 100, 1)}%)."
 
-    # Rule E: Model Out-of-Distribution (OOD) Softmax Logit Entropy Guard
-    if raw_max_prob < 0.14 and skin_ratio < 0.35:
+    # Rule 6: Model Out-of-Distribution (OOD) Softmax Logit Entropy Guard
+    if raw_max_prob < 0.14 and skin_ratio < 0.25:
         return False, f"Out-of-domain image features (raw model match {round(raw_max_prob * 100, 1)}%)."
 
     return True, f"Valid scalp/hair image (skin {round(skin_ratio * 100, 1)}%, hair {round(dark_hair_ratio * 100, 1)}%)."
