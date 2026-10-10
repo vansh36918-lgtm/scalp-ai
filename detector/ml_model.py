@@ -219,38 +219,50 @@ def verify_scalp_domain(pil_image, raw_max_prob):
     Checks:
       1. Texture & Edge Variance (rejects flat synthetic graphics, white paper, solid logos)
       2. Color Spectrum Distribution (rejects unnatural non-biological blues, greens, purples)
-      3. Out-Of-Distribution (OOD) Softmax Logit Entropy Guard
+      3. Biological Scalp Tissue & Hair Pigment Ratio Guard
+      4. Out-Of-Distribution (OOD) Softmax Logit Entropy Guard
     """
     img_rgb = pil_image.convert("RGB")
-    arr = np.array(img_rgb)
+    arr = np.array(img_rgb).astype(np.float32)
 
     # 1. Texture & Edge Variance Check
     gray = np.mean(arr, axis=2)
     std_dev = float(np.std(gray))
     if std_dev < 10.0:
-        return False, "Image lacks tissue texture (flat graphic or blank photo)."
+        return False, f"Image lacks tissue texture (std dev {round(std_dev, 1)} < 10.0)."
 
-    # 2. Non-biological Color Spectrum Check (Vivid Greens, Pure Blues, Purples)
+    # 2. Non-biological Color Spectrum Check (Vivid Greens, Pure Blues, Cyans, Purples)
     import matplotlib.colors as mcolors
     hsv = mcolors.rgb_to_hsv(arr / 255.0)
-    h, s = hsv[:, :, 0], hsv[:, :, 1]
+    h, s, v = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
 
-    # Non-biological hues: Greens (0.20-0.42), Blues (0.50-0.72), Purples (0.75-0.88) with saturation > 0.25
+    # Non-biological hues with saturation > 0.18
     non_bio_mask = (
-        ((h >= 0.20) & (h <= 0.42) & (s > 0.25)) |
-        ((h >= 0.50) & (h <= 0.72) & (s > 0.25)) |
-        ((h >= 0.75) & (h <= 0.88) & (s > 0.25))
+        ((h >= 0.16) & (h <= 0.42) & (s > 0.18)) |  # Greens / Teals
+        ((h >= 0.45) & (h <= 0.72) & (s > 0.18)) |  # Blues / Cyans
+        ((h >= 0.75) & (h <= 0.88) & (s > 0.18))    # Purples / Violets
     )
     non_bio_ratio = float(np.mean(non_bio_mask))
 
-    if non_bio_ratio > 0.35:
+    if non_bio_ratio > 0.18:
         return False, f"Non-biological color distribution ({round(non_bio_ratio * 100, 1)}% non-scalp tones)."
 
-    # 3. Model Out-of-Distribution (OOD) Entropy Guard
-    if raw_max_prob < 0.08:
+    # 3. Human Scalp Tissue & Hair Pigment Mask (Fitzpatrick I-VI skin, follicle shadows, gray/blonde/black hair)
+    scalp_hair_mask = (
+        (((h <= 0.15) | (h >= 0.88)) & (s >= 0.10) & (v >= 0.20)) |
+        (v < 0.28) |
+        ((s < 0.22) & (v >= 0.35))
+    )
+    scalp_hair_ratio = float(np.mean(scalp_hair_mask))
+
+    if scalp_hair_ratio < 0.32:
+        return False, f"Low scalp/hair feature density ({round(scalp_hair_ratio * 100, 1)}% scalp tissue match)."
+
+    # 4. Model Out-of-Distribution (OOD) Entropy Guard
+    if raw_max_prob < 0.14 and scalp_hair_ratio < 0.45:
         return False, f"Out-of-domain image features (raw model match {round(raw_max_prob * 100, 1)}%)."
 
-    return True, "Valid scalp/hair image"
+    return True, f"Valid scalp/hair image (scalp match {round(scalp_hair_ratio * 100, 1)}%)."
 
 def predict_image(pil_image, enable_tta=True):
     """
