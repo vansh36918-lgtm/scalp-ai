@@ -213,6 +213,45 @@ def _compute_gradcam(pil_image, model, grad_model, top_class_idx):
         print("Grad-CAM generation error:", e)
         return None
 
+def verify_scalp_domain(pil_image, raw_max_prob):
+    """
+    Evaluates whether the uploaded photo contains human scalp/hair features or is an out-of-domain image.
+    Checks:
+      1. Texture & Edge Variance (rejects flat synthetic graphics, white paper, solid logos)
+      2. Color Spectrum Distribution (rejects unnatural non-biological blues, greens, purples)
+      3. Out-Of-Distribution (OOD) Softmax Logit Entropy Guard
+    """
+    img_rgb = pil_image.convert("RGB")
+    arr = np.array(img_rgb)
+
+    # 1. Texture & Edge Variance Check
+    gray = np.mean(arr, axis=2)
+    std_dev = float(np.std(gray))
+    if std_dev < 10.0:
+        return False, "Image lacks tissue texture (flat graphic or blank photo)."
+
+    # 2. Non-biological Color Spectrum Check (Vivid Greens, Pure Blues, Purples)
+    import matplotlib.colors as mcolors
+    hsv = mcolors.rgb_to_hsv(arr / 255.0)
+    h, s = hsv[:, :, 0], hsv[:, :, 1]
+
+    # Non-biological hues: Greens (0.20-0.42), Blues (0.50-0.72), Purples (0.75-0.88) with saturation > 0.25
+    non_bio_mask = (
+        ((h >= 0.20) & (h <= 0.42) & (s > 0.25)) |
+        ((h >= 0.50) & (h <= 0.72) & (s > 0.25)) |
+        ((h >= 0.75) & (h <= 0.88) & (s > 0.25))
+    )
+    non_bio_ratio = float(np.mean(non_bio_mask))
+
+    if non_bio_ratio > 0.35:
+        return False, f"Non-biological color distribution ({round(non_bio_ratio * 100, 1)}% non-scalp tones)."
+
+    # 3. Model Out-of-Distribution (OOD) Entropy Guard
+    if raw_max_prob < 0.08:
+        return False, f"Out-of-domain image features (raw model match {round(raw_max_prob * 100, 1)}%)."
+
+    return True, "Valid scalp/hair image"
+
 def predict_image(pil_image, enable_tta=True):
     """
     Predicts scalp condition using 15-class EfficientNet-B0 with Test-Time Augmentation,
@@ -255,6 +294,13 @@ def predict_image(pil_image, enable_tta=True):
 
     # Objective Computer Vision Trichometry Analysis
     metrics = analyze_scalp_metrics(pil_image)
+
+    # Scalp & Hair Domain Guard: Reject non-scalp / non-hair photos
+    raw_max_prob = float(np.max(predictions))
+    is_scalp, reason = verify_scalp_domain(pil_image, raw_max_prob)
+    if not is_scalp:
+        print("Domain rejection guard triggered:", reason)
+        return "invalid_non_scalp_image", 0.0, {}, None, None, metrics, None
 
     # Clinical Safety & Photo Flaw Conflict Guard:
     # 1. Healthy Scalp Lighting Glare vs Psoriasis/Dandruff:

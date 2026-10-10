@@ -53,7 +53,17 @@ def upload_view(request):
             return render(
                 request,
                 "detector/upload.html",
-                {"error": "An error occurred while analyzing the scalp image. Please try uploading another photo."}
+                {"error": "An error occurred while analyzing the image. Please try uploading another photo."}
+            )
+
+        # Domain Guard Rejection: If photo is not scalp/hair related
+        if label == "invalid_non_scalp_image":
+            return render(
+                request,
+                "detector/upload.html",
+                {
+                    "error": "⚠️ Invalid Photo: The uploaded image does not appear to be a scalp or hair photograph. Please upload a clear close-up photo of the scalp or hair area."
+                },
             )
 
         # Confidence threshold check
