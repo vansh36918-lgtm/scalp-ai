@@ -284,12 +284,18 @@ def predict_image(pil_image, enable_tta=True):
 
             predictions = predictions / np.sum(predictions)
 
-    top_index = int(np.argmax(predictions))
+    # Temperature Scaling (T = 0.40) to calibrate 15-class probability entropy into clear confidence score
+    temp = 0.40
+    log_preds = np.log(np.clip(predictions, 1e-7, 1.0)) / temp
+    calibrated_preds = np.exp(log_preds - np.max(log_preds))
+    calibrated_preds = calibrated_preds / np.sum(calibrated_preds)
+
+    top_index = int(np.argmax(calibrated_preds))
     label = class_names[top_index]
-    confidence = float(predictions[top_index]) * 100.0
+    confidence = float(calibrated_preds[top_index]) * 100.0
 
     all_scores = {
-        class_names[i]: round(float(predictions[i]) * 100.0, 2)
+        class_names[i]: round(float(calibrated_preds[i]) * 100.0, 2)
         for i in range(len(class_names))
     }
 
