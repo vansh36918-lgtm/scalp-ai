@@ -216,58 +216,62 @@ def _compute_gradcam(pil_image, model, grad_model, top_class_idx):
 def verify_scalp_domain(pil_image, raw_max_prob):
     """
     Evaluates whether the uploaded photo contains human scalp/hair features or is an out-of-domain image
-    (such as UI screenshots, text documents, white paper, cars, shoes, plants, or synthetic graphics).
+    (such as digital artwork, anime wallpapers, UI screenshots, text documents, white paper, cars, shoes, or plants).
     """
     img_rgb = pil_image.convert("RGB")
     arr = np.array(img_rgb).astype(np.float32)
 
-    # 1. Texture & Edge Variance Check (rejects flat synthetic graphics, solid white/black screens)
+    # 1. Image dimensions & aspect ratio check (rejects ultra-wide wallpapers/banners e.g. 1000x375)
+    w, h_img = pil_image.size
+    aspect_ratio = max(w, h_img) / max(1, min(w, h_img))
+
+    # 2. Texture & Edge Variance Check (rejects flat synthetic graphics, solid white/black screens)
     gray = np.mean(arr, axis=2)
     std_dev = float(np.std(gray))
     if std_dev < 10.0:
         return False, f"Image lacks tissue texture (flat graphic or blank photo, std dev {round(std_dev, 1)} < 10.0)."
 
-    # 2. HSV Color Space Analysis
+    # 3. HSV Color Space Analysis
     import matplotlib.colors as mcolors
     hsv = mcolors.rgb_to_hsv(arr / 255.0)
     h, s, v = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
 
-    # Rule A: Document / Website UI Screenshot Filter (Pure White Canvas > 30%)
-    # Screenshots, web DNS panels, printed pages, documents have huge areas of pure white/light gray background (s < 0.08 & v > 0.82)
-    white_bg_mask = (s < 0.08) & (v > 0.82)
+    # Rule A: Document / Website UI Screenshot Filter (Pure White Canvas > 25%)
+    white_bg_mask = (s < 0.08) & (v > 0.80)
     white_bg_ratio = float(np.mean(white_bg_mask))
 
-    if white_bg_ratio > 0.30:
+    if white_bg_ratio > 0.25:
         return False, f"Screenshot or document background detected ({round(white_bg_ratio * 100, 1)}% white canvas)."
 
-    # Rule B: Non-biological Color Spectrum Filter (Vivid Greens, Pure Blues, Cyans, Purples > 45%)
+    # Rule B: Non-biological Color Spectrum Filter (Vivid Cyans, Blues, Greens, Purples, Magentas > 30%)
     non_bio_mask = (
-        ((h >= 0.16) & (h <= 0.42) & (s > 0.20)) |  # Greens / Teals
-        ((h >= 0.45) & (h <= 0.72) & (s > 0.20)) |  # Blues / Cyans
-        ((h >= 0.75) & (h <= 0.88) & (s > 0.20))    # Purples / Violets
+        ((h >= 0.16) & (h <= 0.42) & (s > 0.18)) |  # Greens / Teals
+        ((h >= 0.45) & (h <= 0.72) & (s > 0.18)) |  # Blues / Cyans
+        ((h >= 0.75) & (h <= 0.88) & (s > 0.18))    # Purples / Violets
     )
     non_bio_ratio = float(np.mean(non_bio_mask))
 
-    if non_bio_ratio > 0.45:
-        return False, f"Non-biological color distribution ({round(non_bio_ratio * 100, 1)}% non-scalp tones)."
-
-    # Rule C: Biological Scalp Tissue & Hair Pigment Coverage Check
-    skin_mask = (((h <= 0.15) | (h >= 0.88)) & (s >= 0.10) & (v >= 0.15) & (v <= 0.96))
+    # Rule C: Real Human Scalp Skin Tone Mask (Fitzpatrick I-VI skin)
+    skin_mask = (((h <= 0.15) | (h >= 0.86)) & (s >= 0.08) & (v >= 0.15) & (v <= 0.98))
     skin_ratio = float(np.mean(skin_mask))
 
-    dark_hair_mask = (v < 0.25)
+    # Rule D: Dark Hair Shafts / Follicle Shadow Mask
+    dark_hair_mask = (v < 0.32) & (s < 0.50)
     dark_hair_ratio = float(np.mean(dark_hair_mask))
 
-    tissue_ratio = skin_ratio + dark_hair_ratio
+    # Rejection Logic
+    if non_bio_ratio > 0.30 and skin_ratio < 0.20:
+        return False, f"Non-biological color distribution ({round(non_bio_ratio * 100, 1)}% non-scalp tones, digital artwork/wallpaper)."
+    if aspect_ratio > 2.2 and skin_ratio < 0.25:
+        return False, f"Panoramic banner or wallpaper aspect ratio ({round(aspect_ratio, 2)}:1)."
+    if skin_ratio < 0.08 and dark_hair_ratio < 0.15:
+        return False, f"Low human scalp skin/hair feature density (skin {round(skin_ratio * 100, 1)}%, hair {round(dark_hair_ratio * 100, 1)}%)."
 
-    if tissue_ratio < 0.15:
-        return False, f"Insufficient scalp skin or hair feature density (tissue match {round(tissue_ratio * 100, 1)}%)."
-
-    # Rule D: Model Out-of-Distribution (OOD) Softmax Logit Entropy Guard
-    if raw_max_prob < 0.14 and tissue_ratio < 0.35:
+    # Rule E: Model Out-of-Distribution (OOD) Softmax Logit Entropy Guard
+    if raw_max_prob < 0.14 and skin_ratio < 0.35:
         return False, f"Out-of-domain image features (raw model match {round(raw_max_prob * 100, 1)}%)."
 
-    return True, f"Valid scalp/hair image (tissue match {round(tissue_ratio * 100, 1)}%)."
+    return True, f"Valid scalp/hair image (skin {round(skin_ratio * 100, 1)}%, hair {round(dark_hair_ratio * 100, 1)}%)."
 
 def predict_image(pil_image, enable_tta=True):
     """
