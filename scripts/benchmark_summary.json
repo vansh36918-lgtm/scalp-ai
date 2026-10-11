@@ -1,12 +1,12 @@
 {
   "total_samples": 2250,
   "num_classes": 15,
-  "top1_accuracy": 84.8,
-  "top3_accuracy": 90.18,
-  "macro_sensitivity": 84.8,
-  "macro_specificity": 98.91,
-  "macro_precision": 85.16,
-  "macro_f1": 84.02,
+  "top1_accuracy": 84.84,
+  "top3_accuracy": 90.13,
+  "macro_sensitivity": 84.84,
+  "macro_specificity": 98.92,
+  "macro_precision": 85.2,
+  "macro_f1": 84.12,
   "confusion_matrix": [
     [
       150,
@@ -63,13 +63,13 @@
       0,
       0,
       0,
-      137,
+      135,
       0,
       0,
       1,
-      4,
+      5,
       0,
-      3,
+      4,
       3,
       1,
       0,
@@ -94,7 +94,7 @@
       0
     ],
     [
-      2,
+      1,
       1,
       0,
       0,
@@ -108,7 +108,7 @@
       0,
       0,
       38,
-      23
+      24
     ],
     [
       0,
@@ -129,9 +129,9 @@
     ],
     [
       1,
-      12,
-      1,
-      59,
+      13,
+      0,
+      55,
       0,
       0,
       0,
@@ -140,9 +140,9 @@
       1,
       0,
       11,
-      3,
-      1,
-      2
+      2,
+      4,
+      4
     ],
     [
       0,
@@ -165,13 +165,13 @@
       0,
       0,
       0,
-      10,
+      9,
       0,
       0,
       0,
       0,
       0,
-      140,
+      141,
       0,
       0,
       0,
@@ -247,13 +247,13 @@
       47
     ],
     [
-      6,
+      5,
       2,
       0,
       0,
       0,
       20,
-      1,
+      0,
       0,
       0,
       0,
@@ -261,53 +261,53 @@
       0,
       0,
       42,
-      79
+      81
     ]
   ],
   "class_stats": {
     "alopecia_areata": {
       "n_samples": 150,
       "tp": 150,
-      "fp": 12,
-      "tn": 2088,
+      "fp": 10,
+      "tn": 2090,
       "fn": 0,
       "sensitivity": 100.0,
-      "specificity": 99.43,
-      "precision": 92.59,
-      "f1_score": 96.15
+      "specificity": 99.52,
+      "precision": 93.75,
+      "f1_score": 96.77
     },
     "androgenetic_alopecia": {
       "n_samples": 150,
       "tp": 150,
-      "fp": 18,
-      "tn": 2082,
+      "fp": 19,
+      "tn": 2081,
       "fn": 0,
       "sensitivity": 100.0,
-      "specificity": 99.14,
-      "precision": 89.29,
-      "f1_score": 94.34
+      "specificity": 99.1,
+      "precision": 88.76,
+      "f1_score": 94.04
     },
     "contact_dermatitis": {
       "n_samples": 150,
       "tp": 150,
-      "fp": 1,
-      "tn": 2099,
+      "fp": 0,
+      "tn": 2100,
       "fn": 0,
       "sensitivity": 100.0,
-      "specificity": 99.95,
-      "precision": 99.34,
-      "f1_score": 99.67
+      "specificity": 100.0,
+      "precision": 100.0,
+      "f1_score": 100.0
     },
     "dandruff": {
       "n_samples": 150,
-      "tp": 137,
-      "fp": 69,
-      "tn": 2031,
-      "fn": 13,
-      "sensitivity": 91.33,
-      "specificity": 96.71,
-      "precision": 66.5,
-      "f1_score": 76.97
+      "tp": 135,
+      "fp": 64,
+      "tn": 2036,
+      "fn": 15,
+      "sensitivity": 90.0,
+      "specificity": 96.95,
+      "precision": 67.84,
+      "f1_score": 77.36
     },
     "folliculitis": {
       "n_samples": 150,
@@ -334,24 +334,24 @@
     "lichen_planopilaris": {
       "n_samples": 150,
       "tp": 150,
-      "fp": 2,
-      "tn": 2098,
+      "fp": 1,
+      "tn": 2099,
       "fn": 0,
       "sensitivity": 100.0,
-      "specificity": 99.9,
-      "precision": 98.68,
-      "f1_score": 99.34
+      "specificity": 99.95,
+      "precision": 99.34,
+      "f1_score": 99.67
     },
     "normal_healthy_scalp": {
       "n_samples": 150,
       "tp": 58,
-      "fp": 4,
-      "tn": 2096,
+      "fp": 5,
+      "tn": 2095,
       "fn": 92,
       "sensitivity": 38.67,
-      "specificity": 99.81,
-      "precision": 93.55,
-      "f1_score": 54.72
+      "specificity": 99.76,
+      "precision": 92.06,
+      "f1_score": 54.46
     },
     "pediculosis_capitis": {
       "n_samples": 150,
@@ -366,14 +366,14 @@
     },
     "psoriasis": {
       "n_samples": 150,
-      "tp": 140,
-      "fp": 4,
-      "tn": 2096,
-      "fn": 10,
-      "sensitivity": 93.33,
-      "specificity": 99.81,
-      "precision": 97.22,
-      "f1_score": 95.24
+      "tp": 141,
+      "fp": 5,
+      "tn": 2095,
+      "fn": 9,
+      "sensitivity": 94.0,
+      "specificity": 99.76,
+      "precision": 96.58,
+      "f1_score": 95.27
     },
     "seborrheic_dermatitis": {
       "n_samples": 150,
@@ -400,41 +400,41 @@
     "tinea_capitis": {
       "n_samples": 150,
       "tp": 150,
-      "fp": 3,
-      "tn": 2097,
+      "fp": 2,
+      "tn": 2098,
       "fn": 0,
       "sensitivity": 100.0,
-      "specificity": 99.86,
-      "precision": 98.04,
-      "f1_score": 99.01
+      "specificity": 99.9,
+      "precision": 98.68,
+      "f1_score": 99.34
     },
     "traction_alopecia": {
       "n_samples": 150,
       "tp": 67,
-      "fp": 82,
-      "tn": 2018,
+      "fp": 85,
+      "tn": 2015,
       "fn": 83,
       "sensitivity": 44.67,
-      "specificity": 96.1,
-      "precision": 44.97,
-      "f1_score": 44.82
+      "specificity": 95.95,
+      "precision": 44.08,
+      "f1_score": 44.37
     },
     "trichotillomania": {
       "n_samples": 150,
-      "tp": 79,
-      "fp": 72,
-      "tn": 2028,
-      "fn": 71,
-      "sensitivity": 52.67,
-      "specificity": 96.57,
-      "precision": 52.32,
-      "f1_score": 52.49
+      "tp": 81,
+      "fp": 75,
+      "tn": 2025,
+      "fn": 69,
+      "sensitivity": 54.0,
+      "specificity": 96.43,
+      "precision": 51.92,
+      "f1_score": 52.94
     }
   },
   "correlations": {
-    "confidence_vs_erythema": 0.0772,
-    "confidence_vs_flakiness": -0.0355,
-    "confidence_vs_scalp_exposure": -0.0117,
-    "confidence_vs_health_score": 0.0164
+    "confidence_vs_erythema": 0.0748,
+    "confidence_vs_flakiness": -0.0337,
+    "confidence_vs_scalp_exposure": -0.0148,
+    "confidence_vs_health_score": 0.0037
   }
 }

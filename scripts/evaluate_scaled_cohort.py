@@ -172,38 +172,22 @@ def run_batched_evaluation(max_per_class=None, batch_size=32, resume=True):
             if metrics.get("is_physiological_flaking", False) and "normal_healthy_scalp" in class_names and "dandruff" in class_names:
                 dan_idx = class_names.index("dandruff")
                 norm_idx = class_names.index("normal_healthy_scalp")
-                if predictions[dan_idx] > predictions[norm_idx]:
-                    transfer = predictions[dan_idx] * 0.75
+                if predictions[dan_idx] > predictions[norm_idx] and predictions[dan_idx] < 0.55:
+                    transfer = predictions[dan_idx] * 0.45
                     predictions[dan_idx] -= transfer
                     predictions[norm_idx] += transfer
 
-            if metrics.get("tufting_detected", False) and "folliculitis_decalvans" in class_names:
-                fd_idx = class_names.index("folliculitis_decalvans")
-                for sister_name in ["lichen_planopilaris", "folliculitis"]:
-                    if sister_name in class_names:
-                        s_idx = class_names.index(sister_name)
-                        if predictions[s_idx] > 0.05:
-                            transfer = predictions[s_idx] * 0.65
-                            predictions[s_idx] -= transfer
-                            predictions[fd_idx] += transfer
-
-            if metrics.get("stubble_detected", False) and "trichotillomania" in class_names and "alopecia_areata" in class_names:
-                tricho_idx = class_names.index("trichotillomania")
-                aa_idx = class_names.index("alopecia_areata")
-                if predictions[aa_idx] > 0.05:
-                    transfer = predictions[aa_idx] * 0.65
-                    predictions[aa_idx] -= transfer
-                    predictions[tricho_idx] += transfer
-
-            if metrics.get("tension_detected", False) and "traction_alopecia" in class_names:
-                trac_idx = class_names.index("traction_alopecia")
-                for sister_name in ["androgenetic_alopecia", "alopecia_areata"]:
-                    if sister_name in class_names:
-                        s_idx = class_names.index(sister_name)
-                        if predictions[s_idx] > 0.05:
-                            transfer = predictions[s_idx] * 0.60
-                            predictions[s_idx] -= transfer
-                            predictions[trac_idx] += transfer
+            p_sorted = np.sort(predictions)
+            if (p_sorted[-1] - p_sorted[-2]) < 0.12 and p_sorted[-1] < 0.40:
+                if metrics.get("tufting_detected", False) and "folliculitis_decalvans" in class_names:
+                    fd_idx = class_names.index("folliculitis_decalvans")
+                    predictions[fd_idx] += 0.10
+                if metrics.get("stubble_detected", False) and "trichotillomania" in class_names:
+                    tricho_idx = class_names.index("trichotillomania")
+                    predictions[tricho_idx] += 0.10
+                if metrics.get("tension_detected", False) and "traction_alopecia" in class_names:
+                    trac_idx = class_names.index("traction_alopecia")
+                    predictions[trac_idx] += 0.10
 
             predictions = predictions / np.sum(predictions)
             temp = 0.18

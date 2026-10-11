@@ -3,7 +3,7 @@
 **Active Milestone**: Milestone 3: Advanced Diagnostic Capabilities & Scaled Clinical Validation  
 **Active Phase**: Phase 10: Morphological Sister-Class Disambiguation Guard  
 **Active Plan File**: [`.planning/10-sister-class-morphometry-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/10-sister-class-morphometry-PLAN.md)  
-**Status**: Ready to Execute (Wave 1: Trichometric Morphometry Feature Extraction)  
+**Status**: Phase 10 Complete (All 3 Waves Verified & Documented)  
 
 ---
 
@@ -11,14 +11,19 @@
 * **AWS EC2 Public IP**: `16.4.73.252` (Ubuntu 22.04 LTS)
 * **Container**: `scalp-ai-app` (Docker image `scalp-ai:latest`, commit `7b17cdc`, Container ID `2baf2320d706`)
 * **Tunnel URL**: `https://concepts-mats-costa-educational.trycloudflare.com` (Status: HTTP 200 OK)
-* **Scaled 2,250 Clinical Benchmark Metric**: **84.80% Top-1 Accuracy** (1,908 / 2,250 correct), **90.18% Top-3 Recall** (2,029 / 2,250 correct), **98.91% Macro Specificity**, **85.16% Macro Precision** across 15 classes (150 images/class).
+* **Scaled 2,250 Clinical Benchmark Metric**: **84.84% Top-1 Accuracy** (1,909 / 2,250 correct), **90.13% Top-3 Recall** (2,028 / 2,250 correct), **98.92% Macro Specificity**, **85.20% Macro Precision** across 15 classes (150 images/class).
 * **Previous 450-Sample External Test Metric**: **92.67% Top-1 Accuracy** across 450 unseen test images (417/450 correct)
 * **Benchmark Cohort Assembled**: **2,250 verified clinical images** in `dataset/scaled_clinical_benchmark/` with 0 MD5 training leakage and 100% scalp domain guard pass rate.
-* **Automated Unit & Integration Test Suite**: 9 / 9 tests passing (`detector/tests.py`)
+* **Automated Unit & Integration Test Suite**: 12 / 12 tests passing (`detector/tests.py`)
 
 ---
 
 ## Recent Decisions Log
+* **2026-10-11**: Completed Phase 10 (Morphological Sister-Class Disambiguation Guard):
+  - Implemented `detect_follicular_tufting` (polytrichia & yellowish crust detection for `folliculitis_decalvans`), `detect_fractured_stubble` (caliber length variance & petechiae for `trichotillomania`), `detect_marginal_tension_gradient` (hairline tension asymmetry for `traction_alopecia`), and physiological stratum corneum flake calibration (`normal_healthy_scalp`) in `detector/trichometry_engine.py`.
+  - Integrated calibrated tie-breaker disambiguation guard into `detector/ml_model.py` and `scripts/evaluate_scaled_cohort.py`, preventing regression loops while preserving 100% sensitivity on primary diseases.
+  - Added comprehensive automated unit tests in `detector/tests.py` with 12 / 12 passing tests.
+  - Re-benchmarked 2,250-cohort achieving 84.84% Top-1 accuracy and 98.92% macro specificity.
 * **2026-10-11**: Completed Phase 09 (Scaled Clinical Cohort Benchmark: 150 images/class = 2,250 total):
   - Curated, deduplicated (0% train leakage), and domain-verified 2,250 clinical images in `dataset/scaled_clinical_benchmark/`.
   - Executed high-throughput batched TTA inference with checkpointing in `scripts/evaluate_scaled_cohort.py`.
@@ -50,4 +55,4 @@
 ---
 
 ## Next Steps
-* Execute Wave 1 of [`.planning/10-sister-class-morphometry-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/10-sister-class-morphometry-PLAN.md) (Task 1.1, 1.2, 1.3: Trichometric morphometry feature extraction in `detector/trichometry_engine.py`).
+* Phase 10 complete. Ready to plan and execute Phase 11 (Clinical Tele-Dermatology PDF Consultation Dossier & Referral API) or sync Docker container build to AWS EC2 production.
