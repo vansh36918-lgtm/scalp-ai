@@ -9,7 +9,7 @@
 
 ## Production Health & Environment
 * **AWS EC2 Public IP**: `16.4.73.252` (Ubuntu 22.04 LTS)
-* **Container**: `scalp-ai-app` (Docker image `scalp-ai:latest`, commit `7b17cdc`, Container ID `2baf2320d706`)
+* **Container**: `scalp-ai-app` (Docker image `scalp-ai:latest`, commit `2b2f886`, Container ID `c82bfe1528c3`)
 * **Tunnel URL**: `https://concepts-mats-costa-educational.trycloudflare.com` (Status: HTTP 200 OK)
 * **Scaled 2,250 Clinical Benchmark Metric**: **84.84% Top-1 Accuracy** (1,909 / 2,250 correct), **90.13% Top-3 Recall** (2,028 / 2,250 correct), **98.92% Macro Specificity**, **85.20% Macro Precision** across 15 classes (150 images/class).
 * **Previous 450-Sample External Test Metric**: **92.67% Top-1 Accuracy** across 450 unseen test images (417/450 correct)
