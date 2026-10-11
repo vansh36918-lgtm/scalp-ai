@@ -6,6 +6,7 @@ from django.http import HttpResponse, Http404, FileResponse, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.conf import settings
 
@@ -347,4 +348,100 @@ def download_presentation_view(request):
         response["Content-Disposition"] = 'attachment; filename="ScalpAI_Project_Presentation.pptx"'
         return response
     raise Http404("Presentation file not found.")
+
+
+@csrf_exempt
+def api_analyze_view(request):
+    """
+    POST /api/v1/analyze/
+    Tele-dermatology clinic REST API endpoint for automated scalp disease analysis and urgency triage.
+    """
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Only POST requests are supported."}, status=405)
+
+    if not request.FILES.get("image"):
+        return JsonResponse({"success": False, "error": "Missing 'image' file parameter in request payload."}, status=400)
+
+    uploaded_file = request.FILES["image"]
+    try:
+        uploaded_file.seek(0)
+        pil_image = Image.open(uploaded_file).convert("RGB")
+    except Exception as e:
+        return JsonResponse({"success": False, "error": f"Invalid image format: {str(e)}"}, status=400)
+
+    try:
+        label, confidence, all_scores, gradcam_base64, urgency, trichometry, treatment = predict_image(pil_image)
+    except Exception as e:
+        return JsonResponse({"success": False, "error": f"Clinical inference pipeline error: {str(e)}"}, status=500)
+
+    if label == "invalid_non_scalp_image":
+        return JsonResponse({
+            "success": False,
+            "error": "Image rejected: No biological human scalp or hair tissue detected. Please provide an authentic clinical photo.",
+            "is_scalp": False,
+        }, status=422)
+
+    diff_diagnosis = [
+        {"condition": k, "score": v}
+        for k, v in sorted(all_scores.items(), key=lambda item: item[1], reverse=True)[:3]
+    ]
+
+    scan_record = None
+    if request.user.is_authenticated:
+        try:
+            uploaded_file.seek(0)
+            scan_record = ScanRecord.objects.create(
+                user=request.user,
+                image=uploaded_file,
+                predicted_label=label,
+                confidence=confidence,
+                all_scores=all_scores,
+                trichometry_metrics=trichometry,
+                urgency_tier=urgency.get("tier", "ROUTINE") if isinstance(urgency, dict) else "ROUTINE",
+                urgency_badge=urgency.get("badge", "") if isinstance(urgency, dict) else "",
+                treatment_summary=treatment,
+                gradcam_base64=gradcam_base64 or "",
+            )
+        except Exception as e:
+            print("ScanRecord persistence notice:", e)
+
+    return JsonResponse({
+        "success": True,
+        "scan_id": scan_record.id if scan_record else None,
+        "condition": label,
+        "condition_name": label.replace("_", " ").title(),
+        "confidence": confidence,
+        "urgency_tier": urgency.get("tier", "ROUTINE") if isinstance(urgency, dict) else "ROUTINE",
+        "urgency_badge": urgency.get("badge", "") if isinstance(urgency, dict) else "",
+        "urgency_rationale": urgency.get("rationale", "") if isinstance(urgency, dict) else "",
+        "differential_diagnosis": diff_diagnosis,
+        "trichometry_metrics": trichometry,
+        "treatment_summary": treatment,
+        "gradcam_base64": gradcam_base64,
+    })
+
+
+def api_scan_detail_view(request, scan_id):
+    """
+    GET /api/v1/scan/<scan_id>/
+    Retrieves stored diagnostic scan details.
+    """
+    scan = get_object_or_404(ScanRecord, id=scan_id)
+    if scan.user and request.user.is_authenticated and scan.user != request.user:
+        return JsonResponse({"success": False, "error": "Unauthorized access to scan."}, status=403)
+
+    return JsonResponse({
+        "success": True,
+        "scan_id": scan.id,
+        "created_at": scan.created_at.isoformat(),
+        "condition": scan.predicted_label,
+        "condition_name": scan.predicted_label.replace("_", " ").title(),
+        "confidence": scan.confidence,
+        "urgency_tier": scan.urgency_tier,
+        "urgency_badge": scan.urgency_badge,
+        "trichometry_metrics": scan.trichometry_metrics,
+        "treatment_summary": scan.treatment_summary,
+        "gradcam_base64": scan.gradcam_base64,
+        "all_scores": scan.all_scores,
+    })
 

@@ -215,3 +215,63 @@ class TrichometryEngineTests(TestCase):
         metrics = analyze_scalp_metrics(healthy_img)
         self.assertIn("is_physiological_flaking", metrics)
         self.assertTrue(metrics["is_physiological_flaking"])
+
+
+class TeleDermatologyApiTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="dr_smith", password="Password123!")
+
+    def test_api_analyze_requires_post(self):
+        response = self.client.get(reverse("api_analyze"))
+        self.assertEqual(response.status_code, 405)
+        data = response.json()
+        self.assertFalse(data["success"])
+
+    def test_api_analyze_missing_image(self):
+        response = self.client.post(reverse("api_analyze"), {})
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+        self.assertIn("Missing 'image'", data["error"])
+
+    def test_api_analyze_invalid_image(self):
+        corrupted_file = SimpleUploadedFile("broken.jpg", b"corrupted_non_image_bytes", content_type="image/jpeg")
+        response = self.client.post(reverse("api_analyze"), {"image": corrupted_file})
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+
+    def test_api_analyze_non_scalp_rejection(self):
+        from io import BytesIO
+        from PIL import Image
+        buf = BytesIO()
+        flat_img = Image.new("RGB", (300, 300), color=(255, 255, 255))
+        flat_img.save(buf, format="JPEG")
+        test_file = SimpleUploadedFile("white.jpg", buf.getvalue(), content_type="image/jpeg")
+
+        response = self.client.post(reverse("api_analyze"), {"image": test_file})
+        self.assertEqual(response.status_code, 422)
+        data = response.json()
+        self.assertFalse(data["success"])
+        self.assertFalse(data["is_scalp"])
+
+    def test_api_scan_detail_endpoint(self):
+        dummy_file = SimpleUploadedFile("s.jpg", b"content", content_type="image/jpeg")
+        scan = ScanRecord.objects.create(
+            user=self.user,
+            image=dummy_file,
+            predicted_label="alopecia_areata",
+            confidence=96.4,
+            urgency_tier="SPECIALIST",
+            urgency_badge="Dermatology Consultation",
+            trichometry_metrics={"health_score": 75.0},
+        )
+
+        response = self.client.get(reverse("api_scan_detail", kwargs={"scan_id": scan.id}))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["condition"], "alopecia_areata")
+        self.assertEqual(data["confidence"], 96.4)
+        self.assertEqual(data["urgency_tier"], "SPECIALIST")
