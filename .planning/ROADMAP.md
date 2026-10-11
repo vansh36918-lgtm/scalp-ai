@@ -19,7 +19,7 @@
   - Definition of Done: Camera flash glares masked; `normal_healthy_scalp` accuracy elevated to 80.0% (85.7% biological).
 - [x] **Phase 07: Unseen Empirical Test Set Evaluation** (Risk: Low)
   - Definition of Done: 450 unseen test images evaluated across all 15 classes; achieved 92.67% overall unseen accuracy.
-- [ ] **Phase 08: User Scan History & Longitudinal Health Tracking** (Risk: Medium)
+- [x] **Phase 08: User Scan History & Longitudinal Health Tracking** (Risk: Medium)
   - Definition of Done: Enriched `ScanRecord` model (trichometry metrics, urgency, Grad-CAM snapshot), interactive `/scan/<id>/` view, longitudinal recovery timeline chart in dashboard, condition filtering, scan deletion, and guest session claiming; verified via automated test suite.
 
 ---
