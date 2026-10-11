@@ -345,9 +345,17 @@
             {% endif %}
 
             {% if scan_record %}
-                <a href="{% url 'download_pdf' scan_record.id %}" class="btn-pdf" target="_blank">
-                    <span>📄</span> Download Clinical PDF Report
-                </a>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <a href="{% url 'download_pdf' scan_record.id %}?lang=en" class="btn-pdf" target="_blank" style="flex: 2; padding: 14px 16px; font-size: 14px;" title="Download English Clinical Report">
+                        <span>📄</span> PDF (English)
+                    </a>
+                    <a href="{% url 'download_pdf' scan_record.id %}?lang=es" class="btn-secondary" target="_blank" style="flex: 1; margin-top: 0; padding: 14px 10px; font-size: 13.5px; border-color: rgba(59, 130, 246, 0.4);" title="Descargar Informe en Español">
+                        <span>🇪🇸</span> ES
+                    </a>
+                    <a href="{% url 'download_pdf' scan_record.id %}?lang=hi" class="btn-secondary" target="_blank" style="flex: 1; margin-top: 0; padding: 14px 10px; font-size: 13.5px; border-color: rgba(245, 158, 11, 0.4);" title="हिंदी रिपोर्ट डाउनलोड करें">
+                        <span>🇮🇳</span> HI
+                    </a>
+                </div>
             {% endif %}
 
             <a href="{% url 'upload' %}" class="btn-secondary">

@@ -275,3 +275,74 @@ class TeleDermatologyApiTest(TestCase):
         self.assertEqual(data["condition"], "alopecia_areata")
         self.assertEqual(data["confidence"], 96.4)
         self.assertEqual(data["urgency_tier"], "SPECIALIST")
+
+
+class ClinicalPdfGeneratorTest(TestCase):
+    def setUp(self):
+        from io import BytesIO
+        from PIL import Image
+        self.user = User.objects.create_user(username="clinical_patient", password="Password123!")
+        buf = BytesIO()
+        Image.new("RGB", (100, 100), color=(200, 150, 150)).save(buf, format="JPEG")
+        dummy_file = SimpleUploadedFile("scan_test.jpg", buf.getvalue(), content_type="image/jpeg")
+        self.scan = ScanRecord.objects.create(
+            user=self.user,
+            image=dummy_file,
+            predicted_label="seborrheic_dermatitis",
+            confidence=89.5,
+            urgency_tier="ROUTINE",
+            urgency_badge="Dermatologist Evaluation",
+            all_scores={"seborrheic_dermatitis": 89.5, "dandruff": 8.0, "psoriasis": 2.5},
+            trichometry_metrics={
+                "health_score": 68.0,
+                "flakiness_pct": 24.5,
+                "flakiness_badge": "Moderate Flaking",
+                "flake_color": "#d97706",
+                "erythema_pct": 18.2,
+                "erythema_badge": "Mild Erythema",
+                "erythema_color": "#f59e0b",
+                "scalp_exposure_pct": 15.0,
+                "severity_stage": "Moderate Dermatosis",
+                "stage_color": "#d97706",
+            },
+            treatment_summary={
+                "ingredients": [
+                    {"name": "Ketoconazole 2% Shampoo", "role": "Antifungal targeting Malassezia yeast"},
+                    {"name": "Zinc Pyrithione 1%", "role": "Cytostatic and antimicrobial agent"}
+                ],
+                "wash_routine": "Use medicated shampoo 2-3 times per week.",
+                "avoid": "Avoid heavy hair oils or high alcohol pomades."
+            }
+        )
+
+    def test_generate_pdf_english(self):
+        from .pdf_generator import generate_clinical_pdf
+        pdf_bytes = generate_clinical_pdf(self.scan, patient_name="John Doe", lang="en")
+        self.assertTrue(pdf_bytes.startswith(b"%PDF-"))
+        self.assertGreater(len(pdf_bytes), 1000)
+
+    def test_generate_pdf_spanish(self):
+        from .pdf_generator import generate_clinical_pdf
+        pdf_bytes = generate_clinical_pdf(self.scan, patient_name="Carlos Gomez", lang="es")
+        self.assertTrue(pdf_bytes.startswith(b"%PDF-"))
+        self.assertGreater(len(pdf_bytes), 1000)
+
+    def test_generate_pdf_hindi(self):
+        from .pdf_generator import generate_clinical_pdf
+        pdf_bytes = generate_clinical_pdf(self.scan, patient_name="Aarav Sharma", lang="hi")
+        self.assertTrue(pdf_bytes.startswith(b"%PDF-"))
+        self.assertGreater(len(pdf_bytes), 1000)
+
+    def test_download_pdf_view_multilanguage(self):
+        for lang in ["en", "es", "hi"]:
+            response = self.client.get(reverse("download_pdf", kwargs={"scan_id": self.scan.id}) + f"?lang={lang}")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response["Content-Type"], "application/pdf")
+            self.assertIn(f"_{lang.upper()}.pdf", response["Content-Disposition"])
+            self.assertTrue(response.content.startswith(b"%PDF-"))
+
+    def test_api_scan_pdf_endpoint(self):
+        response = self.client.get(reverse("api_scan_pdf", kwargs={"scan_id": self.scan.id}) + "?lang=es")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(response.content.startswith(b"%PDF-"))

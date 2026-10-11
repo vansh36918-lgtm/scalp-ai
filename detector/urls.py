@@ -16,4 +16,5 @@ urlpatterns = [
     # Tele-Dermatology Clinic REST API v1
     path("api/v1/analyze/", views.api_analyze_view, name="api_analyze"),
     path("api/v1/scan/<int:scan_id>/", views.api_scan_detail_view, name="api_scan_detail"),
+    path("api/v1/scan/<int:scan_id>/pdf/", views.download_pdf_view, name="api_scan_pdf"),
 ]

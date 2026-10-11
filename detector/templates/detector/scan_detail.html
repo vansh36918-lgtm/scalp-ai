@@ -231,9 +231,17 @@
     </a>
     <div style="display: flex; align-items: center; gap: 12px;">
         <span style="font-size: 13.5px; color: #94a3b8;">Record #{{ scan_record.id }} • {{ scan_record.created_at|date:"M d, Y H:i" }}</span>
-        <a href="{% url 'download_pdf' scan_record.id %}" target="_blank" class="btn-action-primary" style="padding: 8px 16px; font-size: 13px;">
-            <span>📄</span> Download Clinical PDF
-        </a>
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <a href="{% url 'download_pdf' scan_record.id %}?lang=en" target="_blank" class="btn-action-primary" style="padding: 7px 12px; font-size: 12.5px;" title="Download English Report">
+                <span>📄</span> PDF (EN)
+            </a>
+            <a href="{% url 'download_pdf' scan_record.id %}?lang=es" target="_blank" class="btn-back" style="padding: 7px 12px; font-size: 12.5px; border-color: rgba(59, 130, 246, 0.4);" title="Descargar Informe en Español">
+                <span>🇪🇸</span> ES
+            </a>
+            <a href="{% url 'download_pdf' scan_record.id %}?lang=hi" target="_blank" class="btn-back" style="padding: 7px 12px; font-size: 12.5px; border-color: rgba(245, 158, 11, 0.4);" title="हिंदी रिपोर्ट डाउनलोड करें">
+                <span>🇮🇳</span> HI
+            </a>
+        </div>
     </div>
 </div>
 

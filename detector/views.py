@@ -139,10 +139,13 @@ def upload_view(request):
 def download_pdf_view(request, scan_id):
     scan_record = get_object_or_404(ScanRecord, id=scan_id)
     patient_name = request.user.username if request.user.is_authenticated else "Guest Screening"
-    
-    pdf_bytes = generate_clinical_pdf(scan_record, patient_name=patient_name)
+    lang = request.GET.get("lang", "en").lower().strip()
+    if lang not in ["en", "es", "hi"]:
+        lang = "en"
+
+    pdf_bytes = generate_clinical_pdf(scan_record, patient_name=patient_name, lang=lang)
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = f'inline; filename="ScalpAI_Report_#{scan_record.id:05d}.pdf"'
+    response["Content-Disposition"] = f'inline; filename="ScalpAI_Report_#{scan_record.id:05d}_{lang.upper()}.pdf"'
     return response
 
 
