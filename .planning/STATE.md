@@ -9,7 +9,7 @@
 
 ## Production Health & Environment
 * **AWS EC2 Public IP**: `16.4.73.252` (Ubuntu 22.04 LTS)
-* **Container**: `scalp-ai-app` (Docker image `scalp-ai:latest`, commit `f5876c5`, Container ID `235b0014b1f1`)
+* **Container**: `scalp-ai-app` (Docker image `scalp-ai:latest`, commit `780fbb5`, Container ID `4a2ca1ad7a44`)
 * **Tunnel URL**: `https://concepts-mats-costa-educational.trycloudflare.com` (Status: HTTP 200 OK)
 * **REST API Endpoints**:
   * `POST /api/v1/analyze/`: Tele-dermatology image analysis, TTA inference, urgency triage, Grad-CAM, and treatment recommendations.
