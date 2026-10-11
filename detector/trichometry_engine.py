@@ -182,15 +182,15 @@ def analyze_scalp_metrics(pil_image):
     min_c = np.minimum(np.minimum(r, g), b)
     saturation = (max_c - min_c) / (max_c + 1e-5)
 
-    # 2. White Scaly Skin / Flakiness Detection:
-    # Characterized by high brightness (> 145) and low-to-moderate saturation (< 0.38)
-    # on hair and scalp parting regions
-    flake_mask = (brightness > 145) & (saturation < 0.38)
-    flakiness_pct = round(float(np.mean(flake_mask) * 100.0), 1)
-
     # Specular Flash Glare Mask:
     # Camera flash directly reflecting off skin/sebum creates blown-out, desaturated highlights
     glare_mask = ((brightness > 215) & (saturation < 0.22)) | ((r > 235) & (g > 220) & (b > 210))
+
+    # 2. White Scaly Skin / Flakiness Detection:
+    # Characterized by high brightness (> 145) and low-to-moderate saturation (< 0.38)
+    # on hair and scalp parting regions, strictly excluding specular camera flash glares
+    flake_mask = (brightness > 145) & (saturation < 0.38) & (~glare_mask)
+    flakiness_pct = round(float(np.mean(flake_mask) * 100.0), 1)
 
     # 3. Scalp Erythema (Redness / Inflammation) Detection:
     # Elevated red channel relative to green and blue with vascular chromophore prominence (r/g >= 1.30)
@@ -244,6 +244,15 @@ def analyze_scalp_metrics(pil_image):
         severity_stage = "Severe / Clinical Intervention Advised"
         stage_color = "#dc2626"
 
+    # Physiological Stratum Corneum Flaking Guard:
+    # Minimal flaking (< 12%) without vascular erythema (< 7%) represents physiological dry skin peeling rather than active dandruff pathology
+    is_physiological_flaking = (flakiness_pct < 12.0) and (erythema_pct < 7.0)
+
+    # Morphometric sister-class detectors
+    tufting_score, tufting_detected = detect_follicular_tufting(pil_image)
+    stubble_score, stubble_detected = detect_fractured_stubble(pil_image)
+    tension_score, tension_detected = detect_marginal_tension_gradient(pil_image)
+
     return {
         "flakiness_pct": flakiness_pct,
         "flakiness_badge": flakiness_badge,
@@ -255,7 +264,86 @@ def analyze_scalp_metrics(pil_image):
         "health_score": health_score,
         "severity_stage": severity_stage,
         "stage_color": stage_color,
+        "is_physiological_flaking": is_physiological_flaking,
+        "tufting_score": tufting_score,
+        "tufting_detected": tufting_detected,
+        "stubble_score": stubble_score,
+        "stubble_detected": stubble_detected,
+        "tension_score": tension_score,
+        "tension_detected": tension_detected,
     }
+
+def detect_follicular_tufting(pil_image):
+    """
+    Detects tufted folliculitis / polytrichia (multiple hair shafts emerging from single dilated ostia)
+    with yellowish peripilar crusts characteristic of folliculitis decalvans.
+    """
+    img = pil_image.convert("RGB").resize((300, 300))
+    arr = np.array(img).astype(np.float32)
+    r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
+    gray = np.mean(arr, axis=2)
+
+    hair_mask = (gray < 85) & (r < 95) & (g < 90) & (b < 85)
+    crust_mask = (r > 170) & (g > 130) & (b < 120) & (r - b > 40)
+
+    h_blocks = hair_mask.reshape(20, 15, 20, 15).sum(axis=(1, 3))
+    c_blocks = crust_mask.reshape(20, 15, 20, 15).sum(axis=(1, 3))
+
+    tuft_candidates = (h_blocks >= 28) & (c_blocks >= 3)
+    num_tufts = int(np.sum(tuft_candidates))
+    tufting_score = round(float(min(1.0, num_tufts * 0.25 + np.mean(c_blocks) * 0.05)), 2)
+    tufting_detected = bool(num_tufts >= 2 or (num_tufts >= 1 and np.sum(c_blocks) >= 15))
+    return tufting_score, tufting_detected
+
+def detect_fractured_stubble(pil_image):
+    """
+    Quantifies fractured hair stubble of irregular short lengths and mechanical petechiae
+    characteristic of trichotillomania, distinguishing from smooth bald skin of alopecia areata.
+    """
+    from scipy import ndimage
+    img = pil_image.convert("RGB").resize((300, 300))
+    arr = np.array(img).astype(np.float32)
+    r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
+    gray = np.mean(arr, axis=2)
+
+    hair_mask = (gray < 85) & (r < 95) & (g < 90)
+    petechiae_mask = (r > 135) & (g < 65) & (b < 65)
+
+    labeled, num_features = ndimage.label(hair_mask)
+    if num_features > 5:
+        sizes = ndimage.sum(hair_mask, labeled, range(1, min(num_features + 1, 250)))
+        sizes = np.array(sizes)
+        short_stubs = int(np.sum((sizes >= 3) & (sizes <= 35)))
+    else:
+        short_stubs = 0
+
+    petechiae_count = int(np.sum(petechiae_mask))
+    stubble_score = round(float(min(1.0, (short_stubs / 40.0) * 0.6 + (petechiae_count / 15.0) * 0.4)), 2)
+    stubble_detected = bool(short_stubs >= 18 or (short_stubs >= 10 and petechiae_count >= 5))
+    return stubble_score, stubble_detected
+
+def detect_marginal_tension_gradient(pil_image):
+    """
+    Quantifies directional hair density asymmetry along hairline borders capturing the
+    marginal fringe sign characteristic of traction alopecia vs diffuse vertex thinning.
+    """
+    img = pil_image.convert("RGB").resize((300, 300))
+    arr = np.array(img).astype(np.float32)
+    gray = np.mean(arr, axis=2)
+    hair_mask = (gray < 85).astype(np.float32)
+
+    top_half = float(np.mean(hair_mask[:120, :]))
+    bottom_half = float(np.mean(hair_mask[180:, :]))
+    left_half = float(np.mean(hair_mask[:, :120]))
+    right_half = float(np.mean(hair_mask[:, 180:]))
+
+    v_diff = abs(top_half - bottom_half)
+    h_diff = abs(left_half - right_half)
+    max_diff = max(v_diff, h_diff)
+
+    tension_score = round(float(min(1.0, max_diff * 2.5)), 2)
+    tension_detected = bool(max_diff >= 0.28)
+    return tension_score, tension_detected
 
 def get_treatment_recommendation(predicted_label):
     """

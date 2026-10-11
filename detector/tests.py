@@ -159,3 +159,59 @@ class DashboardViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["scans"].count(), 1)
         self.assertEqual(response.context["scans"].first().predicted_label, "psoriasis")
+
+
+class TrichometryEngineTests(TestCase):
+    def test_tufted_follicle_detection(self):
+        from PIL import Image, ImageDraw
+        from detector.trichometry_engine import detect_follicular_tufting
+        
+        # Create an image with polytrichia hair clusters and yellowish crusts
+        img = Image.new("RGB", (300, 300), color=(225, 195, 180))
+        draw = ImageDraw.Draw(img)
+        # Cluster of 8 hair shafts emerging from single center
+        cx, cy = 150, 150
+        draw.ellipse([cx - 8, cy - 8, cx + 8, cy + 8], fill=(210, 175, 90)) # Yellowish crust
+        for i in range(8):
+            draw.line([(cx, cy), (cx + (i - 4) * 8, cy + 30)], fill=(20, 15, 15), width=2)
+
+        score, detected = detect_follicular_tufting(img)
+        self.assertIsInstance(score, float)
+        self.assertIsInstance(detected, bool)
+
+    def test_fractured_stubble_detection(self):
+        from PIL import Image, ImageDraw
+        from detector.trichometry_engine import detect_fractured_stubble
+        
+        img = Image.new("RGB", (300, 300), color=(230, 200, 185))
+        draw = ImageDraw.Draw(img)
+        # Draw multiple irregular short fractured stubs and petechiae
+        for x in range(30, 270, 15):
+            draw.line([(x, 150), (x + 4, 158)], fill=(15, 10, 10), width=2)
+            draw.ellipse([x - 1, 165 - 1, x + 1, 165 + 1], fill=(160, 40, 40)) # petechiae
+
+        score, detected = detect_fractured_stubble(img)
+        self.assertIsInstance(score, float)
+        self.assertIsInstance(detected, bool)
+
+    def test_tension_gradient_and_physiological_flaking(self):
+        from PIL import Image, ImageDraw
+        from detector.trichometry_engine import detect_marginal_tension_gradient, analyze_scalp_metrics
+        
+        # Tension hairline gradient: top dense hair, bottom completely bare
+        img = Image.new("RGB", (300, 300), color=(235, 205, 190))
+        draw = ImageDraw.Draw(img)
+        for y in range(0, 100, 5):
+            for x in range(0, 300, 10):
+                draw.line([(x, y), (x + 5, y + 15)], fill=(20, 15, 15), width=2)
+
+        score, detected = detect_marginal_tension_gradient(img)
+        self.assertIsInstance(score, float)
+        self.assertIsInstance(detected, bool)
+        self.assertTrue(score > 0.3)
+
+        # Physiological flaking on uniform healthy scalp
+        healthy_img = Image.new("RGB", (300, 300), color=(238, 212, 198))
+        metrics = analyze_scalp_metrics(healthy_img)
+        self.assertIn("is_physiological_flaking", metrics)
+        self.assertTrue(metrics["is_physiological_flaking"])
