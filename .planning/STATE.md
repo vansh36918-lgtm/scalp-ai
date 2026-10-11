@@ -1,9 +1,9 @@
 # Current Project State: ScalpAI
 
-**Active Milestone**: Milestone 2: Clinical Diagnostics & Patient History  
-**Active Phase**: Phase 08: User Scan History & Longitudinal Health Tracking (Completed)  
-**Active Plan File**: [`.planning/08-user-scan-history-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/08-user-scan-history-PLAN.md)  
-**Status**: Complete & Live in Production  
+**Active Milestone**: Milestone 3: Advanced Diagnostic Capabilities & Scaled Clinical Validation  
+**Active Phase**: Phase 09: Scaled Clinical Cohort Benchmark (150 images/class = 2,250 total)  
+**Active Plan File**: [`.planning/09-scaled-clinical-benchmark-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/09-scaled-clinical-benchmark-PLAN.md)  
+**Status**: Wave 1 Complete; Ready to Execute Wave 2 (Scaled Batch Evaluation Engine & Metrics)  
 
 ---
 
@@ -12,11 +12,17 @@
 * **Container**: `scalp-ai-app` (Docker image `scalp-ai:latest`, commit `7b17cdc`, Container ID `2baf2320d706`)
 * **Tunnel URL**: `https://concepts-mats-costa-educational.trycloudflare.com` (Status: HTTP 200 OK)
 * **Latest Empirical Test Metric**: **92.67% Top-1 Accuracy** across 450 unseen test images (417/450 correct)
+* **Benchmark Cohort Assembled**: **2,250 verified clinical images** across 15 classes (150/class) in `dataset/scaled_clinical_benchmark/` with 0 MD5 training leakage and 100% scalp domain guard pass rate.
 * **Automated Unit & Integration Test Suite**: 9 / 9 tests passing (`detector/tests.py`)
 
 ---
 
 ## Recent Decisions Log
+* **2026-10-11**: Completed Wave 1 of Phase 09 (`scripts/curate_scaled_cohort.py`):
+  - Curated and validated 150 unique unseen images per class across all 15 conditions (2,250 total) into `dataset/scaled_clinical_benchmark/`.
+  - Enforced strict MD5 hash deduplication against `dataset/train/` verifying 0 training data leaks.
+  - Implemented multi-stage clinical domain guard pre-filtering verifying all 2,250 images satisfy biological tissue texture and skin tone criteria with 0 rejections.
+* **2026-10-11**: Planned Phase 09 (Scaled Clinical Cohort Benchmark: 150 images/class = 2,250 total) across 4 execution waves, covering automated cohort acquisition, domain guard pre-filtering, high-throughput batched evaluation, and 15x15 confusion matrix reporting.
 * **2026-10-11**: Completed and deployed Phase 08 (User Scan History & Longitudinal Health Tracking):
   - Enriched `ScanRecord` model with `trichometry_metrics`, `urgency_tier`, `urgency_badge`, `treatment_summary`, and `gradcam_base64`.
   - Implemented session-based guest scan claiming on login and register.
@@ -37,4 +43,4 @@
 ---
 
 ## Next Steps
-* Plan Phase 09: Scaled Clinical Cohort Benchmark (curating and evaluating 150 images/class = 2,250 total), or Phase 10: Dermoscopic Hair Shaft Caliber Variance Analysis.
+* Execute Wave 2 of [`.planning/09-scaled-clinical-benchmark-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/09-scaled-clinical-benchmark-PLAN.md) (Task 2.1 & 2.2: Build high-throughput batched evaluation engine with progress checkpointing and 15x15 confusion matrix calculation in `scripts/evaluate_scaled_cohort.py`).
