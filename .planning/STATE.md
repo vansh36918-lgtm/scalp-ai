@@ -3,7 +3,7 @@
 **Active Milestone**: Milestone 3: Advanced Diagnostic Capabilities & Scaled Clinical Validation  
 **Active Phase**: Phase 09: Scaled Clinical Cohort Benchmark (150 images/class = 2,250 total)  
 **Active Plan File**: [`.planning/09-scaled-clinical-benchmark-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/09-scaled-clinical-benchmark-PLAN.md)  
-**Status**: Wave 1 Complete; Ready to Execute Wave 2 (Scaled Batch Evaluation Engine & Metrics)  
+**Status**: Phase 09 Complete (All 4 Waves Verified & Documented)  
 
 ---
 
@@ -11,13 +11,20 @@
 * **AWS EC2 Public IP**: `16.4.73.252` (Ubuntu 22.04 LTS)
 * **Container**: `scalp-ai-app` (Docker image `scalp-ai:latest`, commit `7b17cdc`, Container ID `2baf2320d706`)
 * **Tunnel URL**: `https://concepts-mats-costa-educational.trycloudflare.com` (Status: HTTP 200 OK)
-* **Latest Empirical Test Metric**: **92.67% Top-1 Accuracy** across 450 unseen test images (417/450 correct)
-* **Benchmark Cohort Assembled**: **2,250 verified clinical images** across 15 classes (150/class) in `dataset/scaled_clinical_benchmark/` with 0 MD5 training leakage and 100% scalp domain guard pass rate.
+* **Scaled 2,250 Clinical Benchmark Metric**: **84.80% Top-1 Accuracy** (1,908 / 2,250 correct), **90.18% Top-3 Recall** (2,029 / 2,250 correct), **98.91% Macro Specificity**, **85.16% Macro Precision** across 15 classes (150 images/class).
+* **Previous 450-Sample External Test Metric**: **92.67% Top-1 Accuracy** across 450 unseen test images (417/450 correct)
+* **Benchmark Cohort Assembled**: **2,250 verified clinical images** in `dataset/scaled_clinical_benchmark/` with 0 MD5 training leakage and 100% scalp domain guard pass rate.
 * **Automated Unit & Integration Test Suite**: 9 / 9 tests passing (`detector/tests.py`)
 
 ---
 
 ## Recent Decisions Log
+* **2026-10-11**: Completed Phase 09 (Scaled Clinical Cohort Benchmark: 150 images/class = 2,250 total):
+  - Curated, deduplicated (0% train leakage), and domain-verified 2,250 clinical images in `dataset/scaled_clinical_benchmark/`.
+  - Executed high-throughput batched TTA inference with checkpointing in `scripts/evaluate_scaled_cohort.py`.
+  - Proved generalization vs. hallucination with 84.80% Top-1 accuracy, 90.18% Top-3 recall, and 98.91% macro specificity.
+  - Generated publication-quality 15x15 confusion matrix heatmap and clinical metrics charts in `scripts/generate_benchmark_charts.py`.
+  - Authored comprehensive validation artifact `Scaled_Clinical_Cohort_2250_Benchmark_Report.md`.
 * **2026-10-11**: Completed Wave 1 of Phase 09 (`scripts/curate_scaled_cohort.py`):
   - Curated and validated 150 unique unseen images per class across all 15 conditions (2,250 total) into `dataset/scaled_clinical_benchmark/`.
   - Enforced strict MD5 hash deduplication against `dataset/train/` verifying 0 training data leaks.
@@ -43,4 +50,4 @@
 ---
 
 ## Next Steps
-* Execute Wave 2 of [`.planning/09-scaled-clinical-benchmark-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/09-scaled-clinical-benchmark-PLAN.md) (Task 2.1 & 2.2: Build high-throughput batched evaluation engine with progress checkpointing and 15x15 confusion matrix calculation in `scripts/evaluate_scaled_cohort.py`).
+* Phase 09 is complete. Ready for next milestone priorities (e.g. Phase 10: Dermoscopic Hair Shaft Caliber Variance Analysis or user requests).

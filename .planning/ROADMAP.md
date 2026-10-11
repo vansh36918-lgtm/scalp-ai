@@ -24,9 +24,9 @@
 
 ---
 
-## Milestone 3: Advanced Diagnostic Capabilities (Future)
-- [ ] **Phase 09: Scaled Clinical Cohort Benchmark (150 images/class = 2,250 total)** (Risk: Medium)
-  - Definition of Done: Batch collection from dermatological open databases (ISIC/DermNet) with extended multi-class confusion matrix.
+## Milestone 3: Advanced Diagnostic Capabilities & Scaled Clinical Validation
+- [x] **Phase 09: Scaled Clinical Cohort Benchmark (150 images/class = 2,250 total)** (Risk: Medium)
+  - Definition of Done: Automated curation of 2,250 unseen test images (150/class) with 0% MD5 train leakage; batched TTA evaluation achieves 84.80% Top-1 clinical accuracy, 90.18% Top-3 diagnostic recall, 98.91% macro specificity, complete 15x15 confusion matrix heatmap, and validation report artifact.
 - [ ] **Phase 10: Dermoscopic Hair Shaft Caliber Variance Analysis** (Risk: Medium)
   - Definition of Done: Automated detection of miniaturization and flame hairs to further separate `trichotillomania` from `alopecia_areata`.
 - [ ] **Phase 11: Tele-Dermatology Referral API & Multi-Language Reports** (Risk: Low)
