@@ -9,12 +9,12 @@
 
 ## Production Health & Environment
 * **AWS EC2 Public IP**: `16.4.73.252` (Ubuntu 22.04 LTS)
-* **Container**: `scalp-ai-app` (Docker image `scalp-ai:latest`, commit `55c86ac`, Container ID `ab4b53e3abfb`)
+* **Container**: `scalp-ai-app` (Docker image `scalp-ai:latest`, commit `f5876c5`, Container ID `235b0014b1f1`)
 * **Tunnel URL**: `https://concepts-mats-costa-educational.trycloudflare.com` (Status: HTTP 200 OK)
 * **REST API Endpoints**:
   * `POST /api/v1/analyze/`: Tele-dermatology image analysis, TTA inference, urgency triage, Grad-CAM, and treatment recommendations.
   * `GET /api/v1/scan/<id>/`: Diagnostic scan retrieval.
-  * `GET /api/v1/scan/<id>/pdf/?lang={en|es|hi}`: Multi-language consultation dossier PDF download.
+  * `GET /api/v1/scan/<id>/pdf/`: Consultation dossier PDF download.
 * **Scaled 2,250 Clinical Benchmark Metric**: **84.84% Top-1 Accuracy** (1,909 / 2,250 correct), **90.13% Top-3 Recall** (2,028 / 2,250 correct), **98.92% Macro Specificity**, **85.20% Macro Precision** across 15 classes (150 images/class).
 * **Previous 450-Sample External Test Metric**: **92.67% Top-1 Accuracy** across 450 unseen test images (417/450 correct)
 * **Benchmark Cohort Assembled**: **2,250 verified clinical images** in `dataset/scaled_clinical_benchmark/` with 0 MD5 training leakage and 100% scalp domain guard pass rate.
