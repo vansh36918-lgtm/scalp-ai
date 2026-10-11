@@ -315,34 +315,21 @@ class ClinicalPdfGeneratorTest(TestCase):
             }
         )
 
-    def test_generate_pdf_english(self):
+    def test_generate_pdf(self):
         from .pdf_generator import generate_clinical_pdf
-        pdf_bytes = generate_clinical_pdf(self.scan, patient_name="John Doe", lang="en")
+        pdf_bytes = generate_clinical_pdf(self.scan, patient_name="John Doe")
         self.assertTrue(pdf_bytes.startswith(b"%PDF-"))
         self.assertGreater(len(pdf_bytes), 1000)
 
-    def test_generate_pdf_spanish(self):
-        from .pdf_generator import generate_clinical_pdf
-        pdf_bytes = generate_clinical_pdf(self.scan, patient_name="Carlos Gomez", lang="es")
-        self.assertTrue(pdf_bytes.startswith(b"%PDF-"))
-        self.assertGreater(len(pdf_bytes), 1000)
-
-    def test_generate_pdf_hindi(self):
-        from .pdf_generator import generate_clinical_pdf
-        pdf_bytes = generate_clinical_pdf(self.scan, patient_name="Aarav Sharma", lang="hi")
-        self.assertTrue(pdf_bytes.startswith(b"%PDF-"))
-        self.assertGreater(len(pdf_bytes), 1000)
-
-    def test_download_pdf_view_multilanguage(self):
-        for lang in ["en", "es", "hi"]:
-            response = self.client.get(reverse("download_pdf", kwargs={"scan_id": self.scan.id}) + f"?lang={lang}")
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(response["Content-Type"], "application/pdf")
-            self.assertIn(f"_{lang.upper()}.pdf", response["Content-Disposition"])
-            self.assertTrue(response.content.startswith(b"%PDF-"))
+    def test_download_pdf_view(self):
+        response = self.client.get(reverse("download_pdf", kwargs={"scan_id": self.scan.id}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn(".pdf", response["Content-Disposition"])
+        self.assertTrue(response.content.startswith(b"%PDF-"))
 
     def test_api_scan_pdf_endpoint(self):
-        response = self.client.get(reverse("api_scan_pdf", kwargs={"scan_id": self.scan.id}) + "?lang=es")
+        response = self.client.get(reverse("api_scan_pdf", kwargs={"scan_id": self.scan.id}))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertTrue(response.content.startswith(b"%PDF-"))
