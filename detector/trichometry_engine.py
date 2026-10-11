@@ -183,15 +183,19 @@ def analyze_scalp_metrics(pil_image):
     saturation = (max_c - min_c) / (max_c + 1e-5)
 
     # 2. White Scaly Skin / Flakiness Detection:
-    # Characterized by high brightness (> 150) and low-to-moderate saturation (< 0.35)
+    # Characterized by high brightness (> 145) and low-to-moderate saturation (< 0.38)
     # on hair and scalp parting regions
     flake_mask = (brightness > 145) & (saturation < 0.38)
     flakiness_pct = round(float(np.mean(flake_mask) * 100.0), 1)
 
+    # Specular Flash Glare Mask:
+    # Camera flash directly reflecting off skin/sebum creates blown-out, desaturated highlights
+    glare_mask = ((brightness > 215) & (saturation < 0.22)) | ((r > 235) & (g > 220) & (b > 210))
+
     # 3. Scalp Erythema (Redness / Inflammation) Detection:
-    # Elevated red channel relative to green and blue
-    erythema_val = np.maximum(0, r - (g + b) / 2.0)
-    erythema_mask = (erythema_val > 18) & (brightness > 40)
+    # Elevated red channel relative to green and blue with vascular chromophore prominence (r/g >= 1.30)
+    # Excludes specular camera flash glares and deep shadows
+    erythema_mask = (r - g > 25) & (r - b > 18) & (r / (g + 1e-5) >= 1.30) & (brightness > 45) & (~glare_mask)
     erythema_pct = round(float(np.mean(erythema_mask) * 100.0), 1)
 
     # 4. Scalp Exposure / Hair Density Ratio:

@@ -337,8 +337,8 @@ def predict_image(pil_image, enable_tta=True):
     # Clinical Safety & Photo Flaw Conflict Guard:
     # 1. Healthy Scalp Lighting Glare vs Psoriasis/Dandruff:
     # Healthy scalp skin under flash or bright lighting naturally reflects pinkish tones (12-25% erythema).
-    # Only penalize normal_healthy_scalp if flakiness is high (>= 18% & erythema >= 25%) OR erythema is truly acute (>= 52%).
-    if (metrics["flakiness_pct"] >= 18.0 and metrics["erythema_pct"] >= 25.0) or metrics["erythema_pct"] >= 52.0:
+    # Only penalize normal_healthy_scalp if flakiness is high (>= 20% & erythema >= 35%) OR erythema is truly acute (>= 58%).
+    if (metrics["flakiness_pct"] >= 20.0 and metrics["erythema_pct"] >= 35.0) or metrics["erythema_pct"] >= 58.0:
         if "normal_healthy_scalp" in class_names:
             norm_idx = class_names.index("normal_healthy_scalp")
             penalized_mass = predictions[norm_idx] * 0.95
