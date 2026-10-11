@@ -218,3 +218,18 @@ def logout_view(request):
     logout(request)
     messages.info(request, "You have been logged out successfully.")
     return redirect("upload")
+
+
+def download_presentation_view(request):
+    ppt_path = settings.BASE_DIR / "ScalpAI_Project_Presentation.pptx"
+    if not ppt_path.exists():
+        ppt_path = settings.BASE_DIR.parent / "ScalpAI_Project_Presentation.pptx"
+    if ppt_path.exists():
+        response = FileResponse(
+            open(ppt_path, "rb"),
+            content_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        )
+        response["Content-Disposition"] = 'attachment; filename="ScalpAI_Project_Presentation.pptx"'
+        return response
+    raise Http404("Presentation file not found.")
+
