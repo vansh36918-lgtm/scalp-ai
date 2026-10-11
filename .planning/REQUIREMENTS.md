@@ -36,19 +36,27 @@
 
 - **[REQ-09] Longitudinal Trichometry Recovery Timeline**:
   - Track patient progress over time by visualizing changes in Scalp Health Score, Erythema %, and Flakiness % across sequential scans.
-  - Priority: High | Status: Planned (Phase 08)
+  - Priority: High | Status: Implemented (Phase 08)
 
 - **[REQ-10] Interactive Historical Scan Detail View**:
   - Dedicated `/scan/<id>/` view allowing patients/clinicians to re-examine historical scans, including saved Grad-CAM heatmaps, trichometry metrics, and active ingredient plans.
-  - Priority: High | Status: Planned (Phase 08)
+  - Priority: High | Status: Implemented (Phase 08)
 
 - **[REQ-11] Guest Scan Session Claiming**:
   - Persist scans performed by guest users in session storage and automatically bind them to the account when the user logs in or registers.
-  - Priority: High | Status: Planned (Phase 08)
+  - Priority: High | Status: Implemented (Phase 08)
 
 - **[REQ-12] Scan History Search, Filtering & Management**:
   - Enable filtering by condition, date sorting, and deletion of unwanted scans with user authorization checks.
-  - Priority: Medium | Status: Planned (Phase 08)
+  - Priority: Medium | Status: Implemented (Phase 08)
+
+- **[REQ-13] Morphological Sister-Class Disambiguation Guard**:
+  - Algorithmic computer-vision detection of tufted follicular clusters (polytrichia for `folliculitis_decalvans`), broken stubble caliber variance (`trichotillomania`), and marginal hairline tension gradients (`traction_alopecia`) to resolve phenotypic sister-class overlap.
+  - Priority: High | Status: Planned (Phase 10)
+
+- **[REQ-14] Clinical Tele-Dermatology PDF Export & Referral Handover**:
+  - High-resolution multi-page PDF medical consultation dossier featuring patient longitudinal chart, Grad-CAM attention overlay, objective trichometry indices, and active ingredient clinical regimen.
+  - Priority: Medium | Status: Planned (Phase 11)
 
 ---
 
