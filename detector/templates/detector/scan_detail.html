@@ -1,0 +1,371 @@
+{% extends "detector/base.html" %}
+
+{% block title %}Historical Record #{{ scan_record.id }} — {{ label }} ({{ confidence|floatformat:1 }}%){% endblock %}
+
+{% block extra_head %}
+<style>
+    .detail-nav-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 8px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--border-dark);
+        transition: all 0.2s ease;
+    }
+    .btn-back:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .result-layout {
+        display: grid;
+        grid-template-columns: 410px 1fr;
+        gap: 32px;
+        align-items: start;
+    }
+    @media (max-width: 960px) {
+        .result-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+    .card {
+        background: rgba(18, 22, 32, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-dark);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.5);
+        padding: 28px;
+        margin-bottom: 26px;
+    }
+    .card-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .finding-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        background: rgba(37, 99, 235, 0.15);
+        color: #60a5fa;
+        padding: 6px 14px;
+        border-radius: 30px;
+        margin-bottom: 14px;
+        border: 1px solid rgba(96, 165, 250, 0.3);
+    }
+    .disease-name {
+        font-size: 32px;
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1.2;
+        margin-bottom: 16px;
+        letter-spacing: -0.8px;
+    }
+    .confidence-meter {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 16px 22px;
+        border-radius: 16px;
+        border: 1px solid var(--border-dark);
+    }
+    .meter-val {
+        font-size: 38px;
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1;
+        letter-spacing: -1px;
+    }
+    .meter-label {
+        font-size: 13.5px;
+        color: #94a3b8;
+        font-weight: 600;
+        line-height: 1.35;
+    }
+    .img-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+    @media (max-width: 480px) {
+        .img-grid { grid-template-columns: 1fr; }
+    }
+    .img-box {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .img-box img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 14px;
+        border: 1px solid var(--border-dark);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    .img-box-label {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+    }
+    .trichometry-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+    .metric-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-dark);
+        border-radius: 16px;
+        padding: 18px;
+    }
+    .metric-val {
+        font-size: 26px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 4px;
+    }
+    .metric-lbl {
+        font-size: 12px;
+        color: #94a3b8;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .score-bar-bg {
+        width: 100%;
+        height: 7px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    .score-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+    }
+    .scores-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .score-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .score-item-top {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        font-weight: 700;
+        color: #cbd5e1;
+    }
+    .treatment-item {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-dark);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+    .treatment-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: #60a5fa;
+        margin-bottom: 4px;
+    }
+    .btn-action-primary {
+        background: #ffffff;
+        color: #090b10;
+        padding: 14px 24px;
+        border-radius: 14px;
+        font-size: 15px;
+        font-weight: 800;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
+        transition: all 0.2s ease;
+    }
+    .btn-action-primary:hover {
+        background: #f1f5f9;
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-nav-bar">
+    <a href="{% url 'dashboard' %}" class="btn-back">
+        <span>←</span> Back to Scan History
+    </a>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 13.5px; color: #94a3b8;">Record #{{ scan_record.id }} • {{ scan_record.created_at|date:"M d, Y H:i" }}</span>
+        <a href="{% url 'download_pdf' scan_record.id %}" target="_blank" class="btn-action-primary" style="padding: 8px 16px; font-size: 13px;">
+            <span>📄</span> Download Clinical PDF
+        </a>
+    </div>
+</div>
+
+<div class="result-layout">
+    <!-- Left Column: Visuals & Metrics -->
+    <div>
+        <div class="card">
+            <div class="card-title">
+                <span>Morphological Evidence</span>
+                <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">Saved Scan</span>
+            </div>
+
+            <div class="img-grid">
+                <div class="img-box">
+                    {% if scan_record.image %}
+                        <img src="{{ scan_record.image.url }}" alt="Scalp Photo">
+                    {% else %}
+                        <div style="height: 200px; background: rgba(255,255,255,0.05); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #64748b;">No Image</div>
+                    {% endif %}
+                    <span class="img-box-label">Original Dermatoscopy</span>
+                </div>
+                <div class="img-box">
+                    {% if scan_record.gradcam_base64 %}
+                        <img src="data:image/jpeg;base64,{{ scan_record.gradcam_base64 }}" alt="Grad-CAM Heatmap">
+                    {% else %}
+                        <div style="height: 200px; background: rgba(255,255,255,0.05); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 12px;">Heatmap Uncached</div>
+                    {% endif %}
+                    <span class="img-box-label">Grad-CAM Feature Activation</span>
+                </div>
+            </div>
+
+            <!-- Trichometry Metrics Grid -->
+            {% if scan_record.trichometry_metrics %}
+            <div class="card-title" style="margin-top: 10px;">
+                <span>Quantitative Trichometry</span>
+            </div>
+            <div class="trichometry-grid">
+                <div class="metric-card">
+                    <div class="metric-val" style="color: #60a5fa;">{{ scan_record.trichometry_metrics.health_score|default:"--" }}</div>
+                    <div class="metric-lbl">Health Score (0-100)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-val" style="color: #f87171;">{{ scan_record.trichometry_metrics.erythema_pct|default:"0.0" }}%</div>
+                    <div class="metric-lbl">Erythema Index</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-val" style="color: #fbbf24;">{{ scan_record.trichometry_metrics.flakiness_pct|default:"0.0" }}%</div>
+                    <div class="metric-lbl">Flakiness Index</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-val" style="color: #34d399;">{{ scan_record.trichometry_metrics.scalp_exposure_pct|default:"0.0" }}%</div>
+                    <div class="metric-lbl">Scalp Exposure</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column: Diagnostic & Clinical Insights -->
+    <div>
+        <div class="card">
+            <div class="finding-badge">Clinical Diagnostic Record</div>
+            <h1 class="disease-name">{{ label }}</h1>
+
+            <div class="confidence-meter">
+                <div class="meter-val" style="color: {% if confidence >= 75 %}#34d399{% elif confidence >= 50 %}#fbbf24{% else %}#f87171{% endif %};">
+                    {{ confidence|floatformat:1 }}%
+                </div>
+                <div>
+                    <div class="meter-label">Model Confidence Match</div>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+                        {% if is_uncertain %}
+                            ⚠️ Borderline finding below 50% confidence. Specialist consultation required.
+                        {% else %}
+                            ✓ High-confidence morphology match with distinctive clinical features.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if urgency.badge %}
+            <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-dark); border-radius: 16px; padding: 18px; margin-bottom: 24px;">
+                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.6px; margin-bottom: 6px;">Clinical Urgency Staging</div>
+                <div style="font-size: 16px; font-weight: 800; color: #f59e0b;">{{ urgency.badge }}</div>
+            </div>
+            {% endif %}
+
+            <div style="color: #cbd5e1; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
+                <p><strong>Pathology Profile:</strong> {{ condition_desc }}</p>
+                <p style="margin-top: 10px;"><strong>Clinical Advice:</strong> {{ condition_advice }}</p>
+            </div>
+
+            <!-- Top Differential Diagnoses -->
+            {% if sorted_scores %}
+            <div class="card-title">
+                <span>Top Differential Diagnoses</span>
+            </div>
+            <div class="scores-list" style="margin-bottom: 24px;">
+                {% for cond, score in sorted_scores|slice:":4" %}
+                <div class="score-item">
+                    <div class="score-item-top">
+                        <span>{{ cond|title }}</span>
+                        <span>{{ score|floatformat:1 }}%</span>
+                    </div>
+                    <div class="score-bar-bg">
+                        <div class="score-bar-fill" style="width: {{ score }}%; background: {% if forloop.first %}#60a5fa{% else %}#475569{% endif %};"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Treatment Guidance -->
+            {% if treatment.ingredients %}
+            <div class="card-title">
+                <span>Evidence-Based Active Ingredients</span>
+            </div>
+            <div>
+                {% for ing in treatment.ingredients %}
+                <div class="treatment-item">
+                    <div class="treatment-title">{{ ing.name }}</div>
+                    <div style="font-size: 13.5px; color: #94a3b8;">{{ ing.role }}</div>
+                </div>
+                {% endfor %}
+                {% if treatment.wash_routine %}
+                <div style="margin-top: 14px; font-size: 14px; color: #cbd5e1;">
+                    <strong>Wash Routine:</strong> {{ treatment.wash_routine }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

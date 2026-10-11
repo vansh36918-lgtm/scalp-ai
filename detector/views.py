@@ -145,6 +145,49 @@ def download_pdf_view(request, scan_id):
     return response
 
 
+def scan_detail_view(request, scan_id):
+    scan_record = get_object_or_404(ScanRecord, id=scan_id)
+
+    # Authorization guard: allow if owned by user or created in current guest session
+    is_owner = (request.user.is_authenticated and scan_record.user == request.user)
+    is_guest_session = (scan_record.id in request.session.get("guest_scan_ids", []))
+    if scan_record.user and not is_owner and not request.user.is_superuser:
+        raise Http404("Scan record not found or access denied.")
+
+    label = scan_record.predicted_label
+    cond_meta = CONDITION_INFO.get(label, {
+        "title": label.replace("_", " ").title(),
+        "desc": "A recognized condition affecting scalp tissue or hair follicle structures.",
+        "advice": "Consult a certified medical dermatologist for clinical examination and management."
+    })
+
+    sorted_scores = sorted(scan_record.all_scores.items(), key=lambda x: x[1], reverse=True) if scan_record.all_scores else []
+
+    urgency = {
+        "tier": scan_record.urgency_tier,
+        "badge": scan_record.urgency_badge,
+    }
+
+    return render(
+        request,
+        "detector/scan_detail.html",
+        {
+            "scan_record": scan_record,
+            "label": cond_meta["title"],
+            "confidence": scan_record.confidence,
+            "sorted_scores": sorted_scores,
+            "is_uncertain": scan_record.is_uncertain,
+            "threshold": 50.0,
+            "condition_desc": cond_meta["desc"],
+            "condition_advice": cond_meta["advice"],
+            "gradcam_base64": scan_record.gradcam_base64,
+            "urgency": urgency,
+            "trichometry": scan_record.trichometry_metrics,
+            "treatment": scan_record.treatment_summary,
+        },
+    )
+
+
 @login_required
 def dashboard_view(request):
     scans = ScanRecord.objects.filter(user=request.user)

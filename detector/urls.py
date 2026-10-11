@@ -5,6 +5,7 @@ urlpatterns = [
     path("", views.upload_view, name="upload"),
     path("ping/", views.ping_view, name="ping"),
     path("report/<int:scan_id>/pdf/", views.download_pdf_view, name="download_pdf"),
+    path("scan/<int:scan_id>/", views.scan_detail_view, name="scan_detail"),
     path("dashboard/", views.dashboard_view, name="dashboard"),
     path("scan/<int:scan_id>/delete/", views.delete_scan_view, name="delete_scan"),
     path("sample-image/<str:class_name>/", views.sample_image_view, name="sample_image"),
