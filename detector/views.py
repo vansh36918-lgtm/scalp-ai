@@ -89,7 +89,18 @@ def upload_view(request):
                 confidence=confidence,
                 all_scores=all_scores,
                 is_uncertain=is_uncertain,
+                trichometry_metrics=trichometry or {},
+                urgency_tier=urgency.get("tier", "") if isinstance(urgency, dict) else "",
+                urgency_badge=urgency.get("badge", "") if isinstance(urgency, dict) else "",
+                treatment_summary=treatment or {},
+                gradcam_base64=gradcam_base64 or "",
             )
+            # If guest user, store scan id in session for automatic claiming upon login/register
+            if not request.user.is_authenticated and scan_record:
+                guest_scans = request.session.get("guest_scan_ids", [])
+                guest_scans.append(scan_record.id)
+                request.session["guest_scan_ids"] = guest_scans
+                request.session.modified = True
         except Exception as e:
             print("ScanRecord creation notice:", e)
             scan_record = None
