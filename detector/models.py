@@ -8,6 +8,11 @@ class ScanRecord(models.Model):
     confidence = models.FloatField()
     all_scores = models.JSONField(default=dict)
     is_uncertain = models.BooleanField(default=False)
+    trichometry_metrics = models.JSONField(default=dict, blank=True)
+    urgency_tier = models.CharField(max_length=50, blank=True, default="")
+    urgency_badge = models.CharField(max_length=100, blank=True, default="")
+    treatment_summary = models.JSONField(default=dict, blank=True)
+    gradcam_base64 = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True, null=True)
 
