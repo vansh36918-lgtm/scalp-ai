@@ -29,5 +29,5 @@
   - Definition of Done: Automated curation of 2,250 unseen test images (150/class) with 0% MD5 train leakage; batched TTA evaluation achieves 84.80% Top-1 clinical accuracy, 90.18% Top-3 diagnostic recall, 98.91% macro specificity, complete 15x15 confusion matrix heatmap, and validation report artifact.
 - [x] **Phase 10: Morphological Sister-Class Disambiguation Guard** (Risk: Medium)
   - Definition of Done: Implemented polytrichia tufting, fractured stubble caliber variance, marginal tension gradient, and physiological flake calibration in `detector/trichometry_engine.py`; integrated into `detector/ml_model.py` and benchmarked across 2,250 clinical images with 98.92% macro specificity and >90% top-3 recall.
-- [ ] **Phase 11: Tele-Dermatology Referral API & Multi-Language Reports** (Risk: Low)
-  - Definition of Done: REST API endpoint for clinic integration and Spanish/Hindi localization of PDF reports.
+- [x] **Phase 11: Tele-Dermatology Referral API & Multi-Language Reports** (Risk: Low)
+  - Definition of Done: Built REST API endpoints (`POST /api/v1/analyze/`, `GET /api/v1/scan/<id>/`, `GET /api/v1/scan/<id>/pdf/`) for tele-dermatology clinic integration; upgraded clinical PDF generator to a 2-page localized consultation dossier in English, Spanish, and Hindi with evidence-based active ingredients and clinician triage referral handover slip; verified via 22/22 unit and integration tests and deployed live to AWS EC2 container.
