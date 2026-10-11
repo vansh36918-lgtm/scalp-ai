@@ -168,6 +168,24 @@ def dashboard_view(request):
     )
 
 
+@login_required
+def delete_scan_view(request, scan_id):
+    if request.method != "POST":
+        return redirect("dashboard")
+
+    scan_record = get_object_or_404(ScanRecord, id=scan_id, user=request.user)
+    if scan_record.image:
+        try:
+            if os.path.isfile(scan_record.image.path):
+                os.remove(scan_record.image.path)
+        except Exception as e:
+            print("Media deletion note:", e)
+
+    scan_record.delete()
+    messages.success(request, f"Scan #{scan_id} was removed from your history.")
+    return redirect("dashboard")
+
+
 def sample_image_view(request, class_name):
     # Try external test set first, then train set
     search_paths = [
