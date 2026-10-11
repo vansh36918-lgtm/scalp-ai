@@ -8,6 +8,7 @@ urlpatterns = [
     path("scan/<int:scan_id>/", views.scan_detail_view, name="scan_detail"),
     path("dashboard/", views.dashboard_view, name="dashboard"),
     path("scan/<int:scan_id>/delete/", views.delete_scan_view, name="delete_scan"),
+    path("compare/", views.compare_scans_view, name="compare_scans"),
     path("sample-image/<str:class_name>/", views.sample_image_view, name="sample_image"),
     path("download-presentation/", views.download_presentation_view, name="download_presentation"),
     path("register/", views.register_view, name="register"),
@@ -17,4 +18,5 @@ urlpatterns = [
     path("api/v1/analyze/", views.api_analyze_view, name="api_analyze"),
     path("api/v1/scan/<int:scan_id>/", views.api_scan_detail_view, name="api_scan_detail"),
     path("api/v1/scan/<int:scan_id>/pdf/", views.download_pdf_view, name="api_scan_pdf"),
+    path("api/v1/compare/", views.api_compare_scans_view, name="api_compare_scans"),
 ]

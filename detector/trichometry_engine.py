@@ -350,3 +350,93 @@ def get_treatment_recommendation(predicted_label):
     Returns clinical treatment plan and active ingredients for the diagnosed condition.
     """
     return ACTIVE_INGREDIENTS.get(predicted_label, ACTIVE_INGREDIENTS["normal_healthy_scalp"])
+
+
+def compute_recovery_comparison(scan_a, scan_b):
+    """
+    Computes chronological morphometric deltas and clinical recovery verdict
+    between two diagnostic scans.
+    """
+    time_a = getattr(scan_a, "created_at", None)
+    time_b = getattr(scan_b, "created_at", None)
+
+    if time_a and time_b and time_a > time_b:
+        baseline, followup = scan_b, scan_a
+    else:
+        baseline, followup = scan_a, scan_b
+
+    time_base = getattr(baseline, "created_at", None)
+    time_fol = getattr(followup, "created_at", None)
+    if time_base and time_fol:
+        delta_sec = (time_fol - time_base).total_seconds()
+        elapsed_days = max(0, int(delta_sec // 86400))
+    else:
+        elapsed_days = 0
+
+    m_base = getattr(baseline, "trichometry_metrics", {}) or {}
+    m_fol = getattr(followup, "trichometry_metrics", {}) or {}
+
+    base_health = float(m_base.get("health_score", 0.0) or 0.0)
+    fol_health = float(m_fol.get("health_score", 0.0) or 0.0)
+
+    base_erythema = float(m_base.get("erythema_pct", 0.0) or 0.0)
+    fol_erythema = float(m_fol.get("erythema_pct", 0.0) or 0.0)
+
+    base_flakiness = float(m_base.get("flakiness_pct", 0.0) or 0.0)
+    fol_flakiness = float(m_fol.get("flakiness_pct", 0.0) or 0.0)
+
+    base_exposure = float(m_base.get("scalp_exposure_pct", 0.0) or 0.0)
+    fol_exposure = float(m_fol.get("scalp_exposure_pct", 0.0) or 0.0)
+
+    delta_health = round(fol_health - base_health, 1)
+    delta_erythema = round(fol_erythema - base_erythema, 1)
+    delta_flakiness = round(fol_flakiness - base_flakiness, 1)
+    delta_exposure = round(fol_exposure - base_exposure, 1)
+
+    erythema_reduction_pct = round(((base_erythema - fol_erythema) / max(base_erythema, 0.01)) * 100, 1) if base_erythema > 0 else 0.0
+    flakiness_reduction_pct = round(((base_flakiness - fol_flakiness) / max(base_flakiness, 0.01)) * 100, 1) if base_flakiness > 0 else 0.0
+
+    if delta_health >= 15.0 or erythema_reduction_pct >= 30.0 or flakiness_reduction_pct >= 30.0:
+        verdict = "SIGNIFICANT_IMPROVEMENT"
+        verdict_badge = "Significant Improvement"
+        verdict_color = "#10b981"
+        verdict_summary = "Substantial therapeutic recovery observed. Erythema inflammation and surface scaling have significantly decreased."
+    elif delta_health >= 5.0 or erythema_reduction_pct >= 10.0 or flakiness_reduction_pct >= 10.0:
+        verdict = "MODERATE_IMPROVEMENT"
+        verdict_badge = "Favorable Treatment Response"
+        verdict_color = "#059669"
+        verdict_summary = "Positive clinical trajectory. Scalp barrier inflammation is steadily subsiding under current regimen."
+    elif delta_erythema > 10.0 or delta_flakiness > 15.0 or delta_health <= -10.0:
+        verdict = "ACTIVE_FLARE_UP"
+        verdict_badge = "Active Flare-up Detected"
+        verdict_color = "#ef4444"
+        verdict_summary = "Elevated erythema or flaking detected relative to baseline. Specialist re-evaluation or regimen adjustment advised."
+    else:
+        verdict = "STABLE_MAINTENANCE"
+        verdict_badge = "Stable Maintenance Phase"
+        verdict_color = "#3b82f6"
+        verdict_summary = "Scalp pathology indices remain consistent with baseline. Disease activity is stabilized."
+
+    return {
+        "baseline": baseline,
+        "followup": followup,
+        "elapsed_days": elapsed_days,
+        "base_health": base_health,
+        "fol_health": fol_health,
+        "delta_health": delta_health,
+        "base_erythema": base_erythema,
+        "fol_erythema": fol_erythema,
+        "delta_erythema": delta_erythema,
+        "erythema_reduction_pct": erythema_reduction_pct,
+        "base_flakiness": base_flakiness,
+        "fol_flakiness": fol_flakiness,
+        "delta_flakiness": delta_flakiness,
+        "flakiness_reduction_pct": flakiness_reduction_pct,
+        "base_exposure": base_exposure,
+        "fol_exposure": fol_exposure,
+        "delta_exposure": delta_exposure,
+        "verdict": verdict,
+        "verdict_badge": verdict_badge,
+        "verdict_color": verdict_color,
+        "verdict_summary": verdict_summary,
+    }

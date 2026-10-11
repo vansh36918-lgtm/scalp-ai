@@ -333,3 +333,88 @@ class ClinicalPdfGeneratorTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertTrue(response.content.startswith(b"%PDF-"))
+
+
+class RecoveryComparisonEngineTest(TestCase):
+    def setUp(self):
+        from io import BytesIO
+        from PIL import Image
+        import datetime
+        self.user = User.objects.create_user(username="comparison_user", password="Password123!")
+        self.other_user = User.objects.create_user(username="other_user", password="Password123!")
+
+        buf1 = BytesIO()
+        Image.new("RGB", (100, 100), color=(220, 100, 100)).save(buf1, format="JPEG")
+        file1 = SimpleUploadedFile("base.jpg", buf1.getvalue(), content_type="image/jpeg")
+
+        buf2 = BytesIO()
+        Image.new("RGB", (100, 100), color=(150, 220, 150)).save(buf2, format="JPEG")
+        file2 = SimpleUploadedFile("follow.jpg", buf2.getvalue(), content_type="image/jpeg")
+
+        self.scan_base = ScanRecord.objects.create(
+            user=self.user,
+            image=file1,
+            predicted_label="seborrheic_dermatitis",
+            confidence=92.0,
+            urgency_tier="ROUTINE",
+            urgency_badge="Dermatologist Evaluation",
+            trichometry_metrics={
+                "health_score": 42.0,
+                "erythema_pct": 28.5,
+                "flakiness_pct": 34.0,
+                "scalp_exposure_pct": 14.0,
+            }
+        )
+
+        self.scan_followup = ScanRecord.objects.create(
+            user=self.user,
+            image=file2,
+            predicted_label="seborrheic_dermatitis",
+            confidence=85.0,
+            urgency_tier="ROUTINE",
+            urgency_badge="Dermatologist Evaluation",
+            trichometry_metrics={
+                "health_score": 79.0,
+                "erythema_pct": 8.0,
+                "flakiness_pct": 6.5,
+                "scalp_exposure_pct": 13.0,
+            }
+        )
+
+    def test_compute_recovery_comparison_metrics(self):
+        from .trichometry_engine import compute_recovery_comparison
+        # Test arbitrary order handling (followup passed first)
+        comp = compute_recovery_comparison(self.scan_followup, self.scan_base)
+
+        self.assertEqual(comp["baseline"].id, self.scan_base.id)
+        self.assertEqual(comp["followup"].id, self.scan_followup.id)
+        self.assertEqual(comp["delta_health"], 37.0)
+        self.assertEqual(comp["delta_erythema"], -20.5)
+        self.assertEqual(comp["delta_flakiness"], -27.5)
+        self.assertGreater(comp["erythema_reduction_pct"], 70.0)
+        self.assertEqual(comp["verdict"], "SIGNIFICANT_IMPROVEMENT")
+
+    def test_api_compare_endpoint(self):
+        self.client.login(username="comparison_user", password="Password123!")
+        url = reverse("api_compare_scans") + f"?a={self.scan_base.id}&b={self.scan_followup.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["baseline_scan_id"], self.scan_base.id)
+        self.assertEqual(data["followup_scan_id"], self.scan_followup.id)
+        self.assertEqual(data["metrics"]["health_score"]["delta"], 37.0)
+        self.assertEqual(data["clinical_verdict"]["code"], "SIGNIFICANT_IMPROVEMENT")
+
+    def test_api_compare_missing_params(self):
+        url = reverse("api_compare_scans") + f"?a={self.scan_base.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()["success"])
+
+    def test_compare_authorization_denial(self):
+        # Other user should not be able to access private scan comparison
+        self.client.login(username="other_user", password="Password123!")
+        url = reverse("api_compare_scans") + f"?a={self.scan_base.id}&b={self.scan_followup.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)

@@ -445,3 +445,103 @@ def api_scan_detail_view(request, scan_id):
         "all_scores": scan.all_scores,
     })
 
+
+def compare_scans_view(request):
+    """
+    GET /compare/?a=<scan_id_a>&b=<scan_id_b>
+    Renders side-by-side Before & After recovery inspection between two scans.
+    """
+    id_a = request.GET.get("a")
+    id_b = request.GET.get("b")
+    if not id_a or not id_b:
+        messages.error(request, "Please select two scans to compare.")
+        return redirect("dashboard")
+
+    scan_a = get_object_or_404(ScanRecord, id=id_a)
+    scan_b = get_object_or_404(ScanRecord, id=id_b)
+
+    is_admin = request.user.is_superuser
+    if scan_a.user and request.user.is_authenticated and scan_a.user != request.user and not is_admin:
+        raise Http404("Access denied to scan comparison.")
+    if scan_b.user and request.user.is_authenticated and scan_b.user != request.user and not is_admin:
+        raise Http404("Access denied to scan comparison.")
+
+    from .trichometry_engine import compute_recovery_comparison
+    comparison = compute_recovery_comparison(scan_a, scan_b)
+
+    return render(
+        request,
+        "detector/compare.html",
+        {
+            "comparison": comparison,
+            "baseline": comparison["baseline"],
+            "followup": comparison["followup"],
+        }
+    )
+
+
+def api_compare_scans_view(request):
+    """
+    GET /api/v1/compare/?a=<scan_id_a>&b=<scan_id_b>
+    Tele-dermatology REST API endpoint for recovery morphometrics diff.
+    """
+    id_a = request.GET.get("a")
+    id_b = request.GET.get("b")
+    if not id_a or not id_b:
+        return JsonResponse({"success": False, "error": "Query parameters 'a' and 'b' scan IDs are required."}, status=400)
+
+    try:
+        scan_a = ScanRecord.objects.get(id=id_a)
+        scan_b = ScanRecord.objects.get(id=id_b)
+    except ScanRecord.DoesNotExist:
+        return JsonResponse({"success": False, "error": "One or both scan records not found."}, status=404)
+
+    if scan_a.user and request.user.is_authenticated and scan_a.user != request.user:
+        return JsonResponse({"success": False, "error": "Unauthorized access to scan."}, status=403)
+    if scan_b.user and request.user.is_authenticated and scan_b.user != request.user:
+        return JsonResponse({"success": False, "error": "Unauthorized access to scan."}, status=403)
+
+    from .trichometry_engine import compute_recovery_comparison
+    comp = compute_recovery_comparison(scan_a, scan_b)
+
+    return JsonResponse({
+        "success": True,
+        "baseline_scan_id": comp["baseline"].id,
+        "baseline_date": comp["baseline"].created_at.isoformat(),
+        "baseline_condition": comp["baseline"].predicted_label,
+        "followup_scan_id": comp["followup"].id,
+        "followup_date": comp["followup"].created_at.isoformat(),
+        "followup_condition": comp["followup"].predicted_label,
+        "elapsed_days": comp["elapsed_days"],
+        "metrics": {
+            "health_score": {
+                "baseline": comp["base_health"],
+                "followup": comp["fol_health"],
+                "delta": comp["delta_health"],
+            },
+            "erythema": {
+                "baseline_pct": comp["base_erythema"],
+                "followup_pct": comp["fol_erythema"],
+                "delta_pct": comp["delta_erythema"],
+                "relative_reduction_pct": comp["erythema_reduction_pct"],
+            },
+            "flakiness": {
+                "baseline_pct": comp["base_flakiness"],
+                "followup_pct": comp["fol_flakiness"],
+                "delta_pct": comp["delta_flakiness"],
+                "relative_reduction_pct": comp["flakiness_reduction_pct"],
+            },
+            "scalp_exposure": {
+                "baseline_pct": comp["base_exposure"],
+                "followup_pct": comp["fol_exposure"],
+                "delta_pct": comp["delta_exposure"],
+            },
+        },
+        "clinical_verdict": {
+            "code": comp["verdict"],
+            "badge": comp["verdict_badge"],
+            "color": comp["verdict_color"],
+            "summary": comp["verdict_summary"],
+        }
+    })
+
