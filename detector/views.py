@@ -190,14 +190,37 @@ def scan_detail_view(request, scan_id):
 
 @login_required
 def dashboard_view(request):
-    scans = ScanRecord.objects.filter(user=request.user)
-    total_scans = scans.count()
-    conclusive_scans = scans.filter(is_uncertain=False).count()
-    
-    if total_scans > 0:
-        avg_confidence = round(sum(s.confidence for s in scans) / total_scans, 1)
-    else:
-        avg_confidence = 0.0
+    import json
+    all_user_scans = ScanRecord.objects.filter(user=request.user)
+
+    condition_filter = request.GET.get("condition", "").strip()
+    search_query = request.GET.get("q", "").strip()
+
+    scans = all_user_scans
+    if condition_filter:
+        scans = scans.filter(predicted_label__iexact=condition_filter)
+    if search_query:
+        scans = scans.filter(predicted_label__icontains=search_query)
+
+    total_scans = all_user_scans.count()
+    conclusive_scans = all_user_scans.filter(is_uncertain=False).count()
+    avg_confidence = round(sum(s.confidence for s in all_user_scans) / total_scans, 1) if total_scans > 0 else 0.0
+
+    # Build longitudinal recovery timeline dataset across user's chronological scans (oldest to newest)
+    timeline_scans = list(all_user_scans.order_by("created_at")[:20])
+    timeline_points = []
+    for s in timeline_scans:
+        metrics = s.trichometry_metrics or {}
+        timeline_points.append({
+            "id": s.id,
+            "date": s.created_at.strftime("%b %d"),
+            "health_score": float(metrics.get("health_score", 0.0) or 0.0),
+            "erythema": float(metrics.get("erythema_pct", 0.0) or 0.0),
+            "flakiness": float(metrics.get("flakiness_pct", 0.0) or 0.0),
+            "label": s.predicted_label.replace("_", " ").title(),
+        })
+
+    user_conditions = sorted(list(set(all_user_scans.values_list("predicted_label", flat=True))))
 
     return render(
         request,
@@ -207,6 +230,11 @@ def dashboard_view(request):
             "total_scans": total_scans,
             "conclusive_scans": conclusive_scans,
             "avg_confidence": avg_confidence,
+            "timeline_json": json.dumps(timeline_points),
+            "has_timeline": len(timeline_points) >= 2,
+            "user_conditions": user_conditions,
+            "selected_condition": condition_filter,
+            "search_query": search_query,
         },
     )
 
