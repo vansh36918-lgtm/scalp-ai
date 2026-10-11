@@ -328,6 +328,7 @@
         <table>
             <thead>
                 <tr>
+                    <th style="width: 40px; text-align: center;">Diff</th>
                     <th>Photo</th>
                     <th>Diagnosis Finding</th>
                     <th>Confidence</th>
@@ -339,6 +340,9 @@
             <tbody>
                 {% for scan in scans %}
                 <tr>
+                    <td style="text-align: center;">
+                        <input type="checkbox" class="scan-compare-cb" value="{{ scan.id }}" onchange="updateCompareBar()" title="Select to compare (choose 2)" style="width: 17px; height: 17px; accent-color: #0d9488; cursor: pointer;">
+                    </td>
                     <td>
                         {% if scan.image %}
                             <a href="{% url 'scan_detail' scan.id %}">
@@ -409,6 +413,59 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Floating Multi-Scan Compare Action Bar -->
+<div id="compareBar" style="display: none; position: sticky; bottom: 24px; z-index: 100; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); border: 1px solid #0d9488; border-radius: 18px; padding: 14px 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); align-items: center; justify-content: space-between; margin-top: 16px; flex-wrap: wrap; gap: 12px;">
+    <div style="color: #ffffff; font-size: 14.5px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+        <span>⚖️</span>
+        <span><b id="compareCount" style="color: #14b8a6;">0</b> of 2 Scans Selected for Recovery Inspection</span>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <button type="button" onclick="clearCompareSelection()" style="background: rgba(255, 255, 255, 0.08); color: #cbd5e1; border: 1px solid var(--border-dark); padding: 8px 14px; font-weight: 700; font-size: 13px; border-radius: 10px; cursor: pointer;">
+            Clear
+        </button>
+        <button id="btnDoCompare" onclick="launchComparison()" disabled style="background: linear-gradient(135deg, #0d9488, #0f766e); color: white; border: none; padding: 9px 20px; font-weight: 800; font-size: 13.5px; border-radius: 10px; cursor: not-allowed; opacity: 0.5; box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);">
+            Compare Selected Scans →
+        </button>
+    </div>
+</div>
+
+<script>
+    function updateCompareBar() {
+        const checked = Array.from(document.querySelectorAll('.scan-compare-cb:checked')).map(cb => cb.value);
+        const bar = document.getElementById('compareBar');
+        const countSpan = document.getElementById('compareCount');
+        const btn = document.getElementById('btnDoCompare');
+
+        if (checked.length > 0) {
+            bar.style.display = 'flex';
+            countSpan.innerText = checked.length;
+            if (checked.length === 2) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            }
+        } else {
+            bar.style.display = 'none';
+        }
+    }
+
+    function clearCompareSelection() {
+        document.querySelectorAll('.scan-compare-cb').forEach(cb => cb.checked = false);
+        updateCompareBar();
+    }
+
+    function launchComparison() {
+        const checked = Array.from(document.querySelectorAll('.scan-compare-cb:checked')).map(cb => cb.value);
+        if (checked.length === 2) {
+            window.location.href = "{% url 'compare_scans' %}?a=" + checked[0] + "&b=" + checked[1];
+        }
+    }
+</script>
 
 {% if has_timeline %}
 <script>

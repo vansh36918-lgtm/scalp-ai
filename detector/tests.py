@@ -418,3 +418,14 @@ class RecoveryComparisonEngineTest(TestCase):
         url = reverse("api_compare_scans") + f"?a={self.scan_base.id}&b={self.scan_followup.id}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 403)
+
+    def test_compare_scans_html_view(self):
+        self.client.login(username="comparison_user", password="Password123!")
+        url = reverse("compare_scans") + f"?a={self.scan_base.id}&b={self.scan_followup.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "detector/compare.html")
+        self.assertContains(response, "Back to Scan History")
+        self.assertContains(response, "Significant Improvement")
+
+

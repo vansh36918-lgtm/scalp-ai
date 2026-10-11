@@ -1,0 +1,485 @@
+{% extends 'detector/base.html' %}
+
+{% block title %}ScalpAI - Before & After Recovery Comparison{% endblock %}
+
+{% block extra_css %}
+<style>
+    .compare-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 10px 0 60px 0;
+    }
+    .compare-nav-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 8px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--border-dark);
+        transition: all 0.2s ease;
+    }
+    .btn-back:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .btn-action-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #0d9488, #0f766e);
+        color: white;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 13px;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+        transition: all 0.2s ease;
+    }
+    .btn-action-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
+    }
+
+    /* Verdict Banner */
+    .verdict-banner {
+        background: rgba(18, 22, 32, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid {{ comparison.verdict_color }};
+        border-left: 6px solid {{ comparison.verdict_color }};
+        border-radius: 20px;
+        padding: 24px 28px;
+        margin-bottom: 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 18px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    .verdict-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+    }
+    .verdict-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: {{ comparison.verdict_color }}22;
+        color: {{ comparison.verdict_color }};
+        border: 1px solid {{ comparison.verdict_color }};
+    }
+    .verdict-desc {
+        color: #cbd5e1;
+        font-size: 14.5px;
+        line-height: 1.5;
+        max-width: 800px;
+    }
+
+    /* Delta Cards Grid */
+    .delta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    @media (max-width: 900px) {
+        .delta-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media (max-width: 550px) {
+        .delta-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .delta-card {
+        background: rgba(18, 22, 32, 0.95);
+        border: 1px solid var(--border-dark);
+        border-radius: 18px;
+        padding: 20px;
+        transition: transform 0.2s ease;
+    }
+    .delta-card:hover {
+        transform: translateY(-2px);
+    }
+    .delta-label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #94a3b8;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+    .delta-value-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+    .delta-main-val {
+        font-size: 24px;
+        font-weight: 800;
+    }
+    .delta-pill {
+        font-size: 12.5px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 6px;
+    }
+    .pill-positive {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .pill-negative {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .pill-neutral {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .delta-subtext {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    /* Side-by-Side Comparison Layout */
+    .compare-cards-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        margin-bottom: 32px;
+    }
+    @media (max-width: 850px) {
+        .compare-cards-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+    .scan-card {
+        background: rgba(18, 22, 32, 0.95);
+        border: 1px solid var(--border-dark);
+        border-radius: 24px;
+        padding: 26px;
+        box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.5);
+    }
+    .scan-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+    .scan-role-badge {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 4px 10px;
+        border-radius: 6px;
+    }
+    .badge-baseline {
+        background: rgba(148, 163, 184, 0.15);
+        color: #94a3b8;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    .badge-followup {
+        background: rgba(13, 148, 136, 0.2);
+        color: #14b8a6;
+        border: 1px solid rgba(13, 148, 136, 0.4);
+    }
+    .scan-date {
+        font-size: 13px;
+        color: #94a3b8;
+    }
+
+    .scan-images-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+    .img-wrap {
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid var(--border-dark);
+        background: #000;
+    }
+    .img-wrap img {
+        width: 100%;
+        height: 190px;
+        object-fit: cover;
+        display: block;
+    }
+    .img-caption {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #94a3b8;
+        padding: 6px 8px;
+        background: rgba(0, 0, 0, 0.7);
+        text-align: center;
+    }
+
+    .scan-meta-box {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-dark);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    .scan-condition-title {
+        font-size: 17px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 4px;
+    }
+    .scan-metrics-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 12px;
+        font-size: 13px;
+    }
+    .metric-row-item {
+        display: flex;
+        justify-content: space-between;
+        color: #cbd5e1;
+    }
+    .metric-row-item span {
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="compare-container">
+    <div class="compare-nav-bar">
+        <a href="{% url 'dashboard' %}" class="btn-back">
+            <span>←</span> Back to Scan History
+        </a>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 13.5px; color: #94a3b8;">
+                Comparison Duration: <b>{{ comparison.elapsed_days }} Days Elapsed</b>
+            </span>
+        </div>
+    </div>
+
+    <!-- Clinical Recovery Verdict Banner -->
+    <div class="verdict-banner">
+        <div>
+            <div class="verdict-title">
+                <span>{{ comparison.verdict_badge }}</span>
+                <span class="verdict-badge">{{ comparison.verdict }}</span>
+            </div>
+            <div class="verdict-desc">
+                {{ comparison.verdict_summary }}
+            </div>
+        </div>
+        <div>
+            <span style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 4px;">Health Score Shift:</span>
+            <span style="font-size: 26px; font-weight: 800; color: {% if comparison.delta_health >= 0 %}#10b981{% else %}#ef4444{% endif %};">
+                {% if comparison.delta_health > 0 %}+{% endif %}{{ comparison.delta_health }} pts
+            </span>
+        </div>
+    </div>
+
+    <!-- Morphometric Deltas Scorecard -->
+    <div class="delta-grid">
+        <div class="delta-card">
+            <div class="delta-label">Scalp Health Score</div>
+            <div class="delta-value-row">
+                <span class="delta-main-val" style="color: {% if comparison.delta_health >= 0 %}#10b981{% else %}#ef4444{% endif %};">
+                    {{ comparison.fol_health|floatformat:1 }}
+                </span>
+                <span class="delta-pill {% if comparison.delta_health >= 0 %}pill-positive{% else %}pill-negative{% endif %}">
+                    {% if comparison.delta_health > 0 %}+{% endif %}{{ comparison.delta_health }} pts
+                </span>
+            </div>
+            <div class="delta-subtext">Baseline: {{ comparison.base_health|floatformat:1 }}/100</div>
+        </div>
+
+        <div class="delta-card">
+            <div class="delta-label">Scalp Erythema (Redness)</div>
+            <div class="delta-value-row">
+                <span class="delta-main-val" style="color: {% if comparison.delta_erythema <= 0 %}#10b981{% else %}#ef4444{% endif %};">
+                    {{ comparison.fol_erythema|floatformat:1 }}%
+                </span>
+                <span class="delta-pill {% if comparison.delta_erythema <= 0 %}pill-positive{% else %}pill-negative{% endif %}">
+                    {% if comparison.delta_erythema > 0 %}+{% endif %}{{ comparison.delta_erythema }}%
+                </span>
+            </div>
+            <div class="delta-subtext">
+                {% if comparison.erythema_reduction_pct > 0 %}
+                    ↓ {{ comparison.erythema_reduction_pct }}% relative reduction
+                {% else %}
+                    Baseline: {{ comparison.base_erythema|floatformat:1 }}%
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="delta-card">
+            <div class="delta-label">Flakiness & Scaling</div>
+            <div class="delta-value-row">
+                <span class="delta-main-val" style="color: {% if comparison.delta_flakiness <= 0 %}#10b981{% else %}#ef4444{% endif %};">
+                    {{ comparison.fol_flakiness|floatformat:1 }}%
+                </span>
+                <span class="delta-pill {% if comparison.delta_flakiness <= 0 %}pill-positive{% else %}pill-negative{% endif %}">
+                    {% if comparison.delta_flakiness > 0 %}+{% endif %}{{ comparison.delta_flakiness }}%
+                </span>
+            </div>
+            <div class="delta-subtext">
+                {% if comparison.flakiness_reduction_pct > 0 %}
+                    ↓ {{ comparison.flakiness_reduction_pct }}% relative reduction
+                {% else %}
+                    Baseline: {{ comparison.base_flakiness|floatformat:1 }}%
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="delta-card">
+            <div class="delta-label">Scalp Exposure Area</div>
+            <div class="delta-value-row">
+                <span class="delta-main-val" style="color: #cbd5e1;">
+                    {{ comparison.fol_exposure|floatformat:1 }}%
+                </span>
+                <span class="delta-pill pill-neutral">
+                    {% if comparison.delta_exposure > 0 %}+{% endif %}{{ comparison.delta_exposure }}%
+                </span>
+            </div>
+            <div class="delta-subtext">Baseline: {{ comparison.base_exposure|floatformat:1 }}%</div>
+        </div>
+    </div>
+
+    <!-- Side-by-Side Comparison Cards -->
+    <div class="compare-cards-layout">
+        <!-- Baseline Card -->
+        <div class="scan-card">
+            <div class="scan-card-header">
+                <div>
+                    <span class="scan-role-badge badge-baseline">Baseline Scan</span>
+                    <span style="font-size: 13.5px; font-weight: 700; color: #ffffff; margin-left: 8px;">#{{ baseline.id }}</span>
+                </div>
+                <span class="scan-date">{{ baseline.created_at|date:"M d, Y • H:i" }}</span>
+            </div>
+
+            <div class="scan-images-grid">
+                <div class="img-wrap">
+                    {% if baseline.image %}
+                        <img src="{{ baseline.image.url }}" alt="Baseline Clinical Image">
+                    {% else %}
+                        <div style="height: 190px; display: flex; align-items: center; justify-content: center; color: #64748b;">No Image</div>
+                    {% endif %}
+                    <div class="img-caption">Clinical Photo</div>
+                </div>
+                <div class="img-wrap">
+                    {% if baseline.gradcam_base64 %}
+                        <img src="data:image/jpeg;base64,{{ baseline.gradcam_base64 }}" alt="Baseline GradCAM">
+                    {% else %}
+                        <div style="height: 190px; display: flex; align-items: center; justify-content: center; color: #64748b;">No Heatmap</div>
+                    {% endif %}
+                    <div class="img-caption">Grad-CAM Heatmap</div>
+                </div>
+            </div>
+
+            <div class="scan-meta-box">
+                <div class="scan-condition-title">{{ baseline.predicted_label|title }}</div>
+                <div style="font-size: 13px; color: #94a3b8;">
+                    Confidence: <b style="color: #10b981;">{{ baseline.confidence|floatformat:1 }}%</b> • Triage: <b>{{ baseline.urgency_tier }}</b>
+                </div>
+                <div class="scan-metrics-summary">
+                    <div class="metric-row-item">Health Score: <span>{{ comparison.base_health|floatformat:1 }}/100</span></div>
+                    <div class="metric-row-item">Erythema: <span>{{ comparison.base_erythema|floatformat:1 }}%</span></div>
+                    <div class="metric-row-item">Flakiness: <span>{{ comparison.base_flakiness|floatformat:1 }}%</span></div>
+                    <div class="metric-row-item">Exposure: <span>{{ comparison.base_exposure|floatformat:1 }}%</span></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <a href="{% url 'scan_detail' baseline.id %}" class="btn-back" style="flex: 1; text-align: center; justify-content: center;">
+                    Inspect Scan Details
+                </a>
+                <a href="{% url 'download_pdf' baseline.id %}" target="_blank" class="btn-action-primary" style="flex: 1; text-align: center; justify-content: center;">
+                    Download PDF
+                </a>
+            </div>
+        </div>
+
+        <!-- Follow-up Card -->
+        <div class="scan-card">
+            <div class="scan-card-header">
+                <div>
+                    <span class="scan-role-badge badge-followup">Follow-Up Scan</span>
+                    <span style="font-size: 13.5px; font-weight: 700; color: #ffffff; margin-left: 8px;">#{{ followup.id }}</span>
+                </div>
+                <span class="scan-date">{{ followup.created_at|date:"M d, Y • H:i" }}</span>
+            </div>
+
+            <div class="scan-images-grid">
+                <div class="img-wrap">
+                    {% if followup.image %}
+                        <img src="{{ followup.image.url }}" alt="Follow-up Clinical Image">
+                    {% else %}
+                        <div style="height: 190px; display: flex; align-items: center; justify-content: center; color: #64748b;">No Image</div>
+                    {% endif %}
+                    <div class="img-caption">Clinical Photo</div>
+                </div>
+                <div class="img-wrap">
+                    {% if followup.gradcam_base64 %}
+                        <img src="data:image/jpeg;base64,{{ followup.gradcam_base64 }}" alt="Follow-up GradCAM">
+                    {% else %}
+                        <div style="height: 190px; display: flex; align-items: center; justify-content: center; color: #64748b;">No Heatmap</div>
+                    {% endif %}
+                    <div class="img-caption">Grad-CAM Heatmap</div>
+                </div>
+            </div>
+
+            <div class="scan-meta-box">
+                <div class="scan-condition-title">{{ followup.predicted_label|title }}</div>
+                <div style="font-size: 13px; color: #94a3b8;">
+                    Confidence: <b style="color: #10b981;">{{ followup.confidence|floatformat:1 }}%</b> • Triage: <b>{{ followup.urgency_tier }}</b>
+                </div>
+                <div class="scan-metrics-summary">
+                    <div class="metric-row-item">Health Score: <span>{{ comparison.fol_health|floatformat:1 }}/100</span></div>
+                    <div class="metric-row-item">Erythema: <span>{{ comparison.fol_erythema|floatformat:1 }}%</span></div>
+                    <div class="metric-row-item">Flakiness: <span>{{ comparison.fol_flakiness|floatformat:1 }}%</span></div>
+                    <div class="metric-row-item">Exposure: <span>{{ comparison.fol_exposure|floatformat:1 }}%</span></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <a href="{% url 'scan_detail' followup.id %}" class="btn-back" style="flex: 1; text-align: center; justify-content: center;">
+                    Inspect Scan Details
+                </a>
+                <a href="{% url 'download_pdf' followup.id %}" target="_blank" class="btn-action-primary" style="flex: 1; text-align: center; justify-content: center;">
+                    Download PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
