@@ -14,18 +14,20 @@
 
 ---
 
-## Milestone 2: Model Hardening & Clinical Generalization (Active)
+## Milestone 2: Clinical Diagnostics & Patient History (Active)
 - [x] **Phase 06: Specular Flash Glare Masking & Healthy Scalp Calibration** (Risk: Medium)
   - Definition of Done: Camera flash glares masked; `normal_healthy_scalp` accuracy elevated to 80.0% (85.7% biological).
 - [x] **Phase 07: Unseen Empirical Test Set Evaluation** (Risk: Low)
   - Definition of Done: 450 unseen test images evaluated across all 15 classes; achieved 92.67% overall unseen accuracy.
-- [ ] **Phase 08: Scaled Clinical Cohort Benchmark (150 images/class = 2,250 total)** (Risk: Medium)
-  - Definition of Done: Batch collection from dermatological open databases (ISIC/DermNet) with extended multi-class confusion matrix.
+- [ ] **Phase 08: User Scan History & Longitudinal Health Tracking** (Risk: Medium)
+  - Definition of Done: Enriched `ScanRecord` model (trichometry metrics, urgency, Grad-CAM snapshot), interactive `/scan/<id>/` view, longitudinal recovery timeline chart in dashboard, condition filtering, scan deletion, and guest session claiming; verified via automated test suite.
 
 ---
 
 ## Milestone 3: Advanced Diagnostic Capabilities (Future)
-- [ ] **Phase 09: Dermoscopic Hair Shaft Caliber Variance Analysis** (Risk: Medium)
+- [ ] **Phase 09: Scaled Clinical Cohort Benchmark (150 images/class = 2,250 total)** (Risk: Medium)
+  - Definition of Done: Batch collection from dermatological open databases (ISIC/DermNet) with extended multi-class confusion matrix.
+- [ ] **Phase 10: Dermoscopic Hair Shaft Caliber Variance Analysis** (Risk: Medium)
   - Definition of Done: Automated detection of miniaturization and flame hairs to further separate `trichotillomania` from `alopecia_areata`.
-- [ ] **Phase 10: Tele-Dermatology Referral API & Multi-Language Reports** (Risk: Low)
+- [ ] **Phase 11: Tele-Dermatology Referral API & Multi-Language Reports** (Risk: Low)
   - Definition of Done: REST API endpoint for clinic integration and Spanish/Hindi localization of PDF reports.

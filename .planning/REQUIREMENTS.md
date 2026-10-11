@@ -34,6 +34,22 @@
   - Responsive, modern frontend allowing camera capture, drag-and-drop upload, real-time diagnostic presentation, and PDF report export.
   - Priority: Medium | Status: Implemented
 
+- **[REQ-09] Longitudinal Trichometry Recovery Timeline**:
+  - Track patient progress over time by visualizing changes in Scalp Health Score, Erythema %, and Flakiness % across sequential scans.
+  - Priority: High | Status: Planned (Phase 08)
+
+- **[REQ-10] Interactive Historical Scan Detail View**:
+  - Dedicated `/scan/<id>/` view allowing patients/clinicians to re-examine historical scans, including saved Grad-CAM heatmaps, trichometry metrics, and active ingredient plans.
+  - Priority: High | Status: Planned (Phase 08)
+
+- **[REQ-11] Guest Scan Session Claiming**:
+  - Persist scans performed by guest users in session storage and automatically bind them to the account when the user logs in or registers.
+  - Priority: High | Status: Planned (Phase 08)
+
+- **[REQ-12] Scan History Search, Filtering & Management**:
+  - Enable filtering by condition, date sorting, and deletion of unwanted scans with user authorization checks.
+  - Priority: Medium | Status: Planned (Phase 08)
+
 ---
 
 ## Non-Functional Requirements

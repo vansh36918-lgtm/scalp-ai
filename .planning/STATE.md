@@ -1,8 +1,9 @@
 # Current Project State: ScalpAI
 
-**Active Milestone**: Milestone 2: Model Hardening & Clinical Generalization  
-**Active Phase**: Phase 08: Scaled Clinical Cohort Benchmark (150 images/class)  
-**Status**: Ready to plan / Stable in Production  
+**Active Milestone**: Milestone 2: Clinical Diagnostics & Patient History  
+**Active Phase**: Phase 08: User Scan History & Longitudinal Health Tracking  
+**Active Plan File**: [`.planning/08-user-scan-history-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/08-user-scan-history-PLAN.md)  
+**Status**: Ready to Execute (Wave 1: Foundation & Schemas)  
 
 ---
 
@@ -15,6 +16,7 @@
 ---
 
 ## Recent Decisions Log
+* **2026-10-11**: Planned Phase 08 (User Scan History & Longitudinal Health Tracking) across 4 execution waves, incorporating rich scan payloads, session-based guest scan claiming, interactive detail views, and longitudinal progress tracking.
 * **2026-10-11**: Initialized Get Shit Done (GSD) spec-driven structure in `.planning/`.
 * **2026-10-11**: Implemented specular camera flash glare filter (\(R > 235, G > 220, B > 210\)) and vascular chromophore prominence (\(R/G \ge 1.30\)) in [`detector/trichometry_engine.py`](file:///g:/Downloads/scalp_project/django_app/detector/trichometry_engine.py), boosting `normal_healthy_scalp` accuracy from 60.0% to 80.0% (85.7% biological accuracy).
 * **2026-10-11**: Removed "Presentation PPT" button from public navigation bar while preserving local presentation deck [`ScalpAI_Project_Presentation.pptx`](file:///g:/Downloads/scalp_project/django_app/ScalpAI_Project_Presentation.pptx).
@@ -28,4 +30,4 @@
 ---
 
 ## Next Steps
-* Run `/gsd-plan` or start Phase 08 planning for the 150-images-per-class (2,250 total) extended validation cohort, or begin Phase 09.
+* Execute Wave 1 of [`.planning/08-user-scan-history-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/08-user-scan-history-PLAN.md) (Task 1.1: Extend `ScanRecord` schema and generate migrations).
