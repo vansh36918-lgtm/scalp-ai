@@ -181,6 +181,19 @@ def sample_image_view(request, class_name):
     raise Http404("Sample image not found")
 
 
+def claim_guest_scans(request, user):
+    """
+    Associates unauthenticated scans performed during the current session with the user.
+    """
+    guest_scan_ids = request.session.get("guest_scan_ids", [])
+    if guest_scan_ids and user and user.is_authenticated:
+        claimed_count = ScanRecord.objects.filter(id__in=guest_scan_ids, user__isnull=True).update(user=user)
+        if claimed_count > 0:
+            messages.info(request, f"Linked {claimed_count} previous scan{'s' if claimed_count > 1 else ''} to your account history.")
+        request.session["guest_scan_ids"] = []
+        request.session.modified = True
+
+
 def register_view(request):
     if request.user.is_authenticated:
         return redirect("dashboard")
@@ -200,6 +213,7 @@ def register_view(request):
         else:
             user = User.objects.create_user(username=username, email=email, password=password)
             login(request, user)
+            claim_guest_scans(request, user)
             messages.success(request, f"Welcome to ScalpAI, {username}!")
             return redirect("dashboard")
 
@@ -216,6 +230,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+            claim_guest_scans(request, user)
             messages.success(request, f"Welcome back, {username}!")
             next_url = request.GET.get("next") or "dashboard"
             return redirect(next_url)
