@@ -1,9 +1,9 @@
 # Current Project State: ScalpAI
 
 **Active Milestone**: Milestone 3: Advanced Diagnostic Capabilities & Scaled Clinical Validation  
-**Active Phase**: Phase 11: Tele-Dermatology Referral API & Multi-Language Reports  
-**Active Plan File**: [`.planning/11-tele-dermatology-api-pdf-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/11-tele-dermatology-api-pdf-PLAN.md)  
-**Status**: Phase 11 Complete & Live in Production  
+**Active Phase**: Phase 12: Recovery Comparison Engine (Before & After Diff Inspector)  
+**Active Plan File**: [`.planning/12-recovery-comparison-diff-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/12-recovery-comparison-diff-PLAN.md)  
+**Status**: Wave 1 & Wave 2 Complete (25/25 Tests Passing); Executing Wave 3 (AWS EC2 Production Deployment)  
 
 ---
 
@@ -14,15 +14,23 @@
 * **REST API Endpoints**:
   * `POST /api/v1/analyze/`: Tele-dermatology image analysis, TTA inference, urgency triage, Grad-CAM, and treatment recommendations.
   * `GET /api/v1/scan/<id>/`: Diagnostic scan retrieval.
-  * `GET /api/v1/scan/<id>/pdf/`: Consultation dossier PDF download.
+  * `GET /api/v1/scan/<id>/pdf/`: Consultation dossier PDF download (Standardized English 2-page report).
+  * `GET /api/v1/compare/?a=<id>&b=<id>`: Before & After recovery diff metrics, relative reduction %, and clinical verdict.
 * **Scaled 2,250 Clinical Benchmark Metric**: **84.84% Top-1 Accuracy** (1,909 / 2,250 correct), **90.13% Top-3 Recall** (2,028 / 2,250 correct), **98.92% Macro Specificity**, **85.20% Macro Precision** across 15 classes (150 images/class).
 * **Previous 450-Sample External Test Metric**: **92.67% Top-1 Accuracy** across 450 unseen test images (417/450 correct)
 * **Benchmark Cohort Assembled**: **2,250 verified clinical images** in `dataset/scaled_clinical_benchmark/` with 0 MD5 training leakage and 100% scalp domain guard pass rate.
-* **Automated Unit & Integration Test Suite**: 22 / 22 tests passing (`detector/tests.py`)
+* **Automated Unit & Integration Test Suite**: 25 / 25 tests passing (`detector/tests.py`)
 
 ---
 
 ## Recent Decisions Log
+* **2026-10-11**: Completed Phase 12 (Before & After Recovery Comparison Engine):
+  - Built `compute_recovery_comparison(scan_a, scan_b)` in `detector/trichometry_engine.py` with automatic chronological sorting, metric deltas (ΔHealth Score, ΔErythema %, ΔFlakiness %), relative % reduction indices, and automated clinical verdicts (SIGNIFICANT_IMPROVEMENT, MODERATE_IMPROVEMENT, STABLE_MAINTENANCE, ACTIVE_FLARE_UP).
+  - Implemented `/compare/?a=<id>&b=<id>` and REST API `GET /api/v1/compare/?a=<id>&b=<id>` with access control in `detector/views.py`.
+  - Created interactive Before & After comparison template `compare.html` with clinical photo / Grad-CAM visual toggles and delta scorecards.
+  - Upgraded dashboard with multi-scan selection checkboxes and floating comparison action bar.
+  - Authored comprehensive test suite `RecoveryComparisonEngineTest` in `detector/tests.py` with 100% pass rate (25/25 total detector tests passing).
+
 * **2026-10-11**: Completed Phase 11 (Tele-Dermatology Referral API & Multi-Language Reports):
   - Built production REST API endpoints (`POST /api/v1/analyze/`, `GET /api/v1/scan/<id>/`, `GET /api/v1/scan/<id>/pdf/`) for third-party clinic integration.
   - Upgraded clinical PDF generator to a 2-page localized consultation dossier supporting English, Spanish (`es`), and Hindi (`hi`).
@@ -67,4 +75,4 @@
 ---
 
 ## Next Steps
-* Phase 10 complete. Ready to plan and execute Phase 11 (Clinical Tele-Dermatology PDF Consultation Dossier & Referral API) or sync Docker container build to AWS EC2 production.
+* Deploy Phase 12 changes to AWS EC2 production, restart container, verify health over Cloudflare tunnel, and determine next milestone or optimization with the user.
