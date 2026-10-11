@@ -1,9 +1,9 @@
 # Current Project State: ScalpAI
 
 **Active Milestone**: Milestone 3: Advanced Diagnostic Capabilities & Scaled Clinical Validation  
-**Active Phase**: Phase 09: Scaled Clinical Cohort Benchmark (150 images/class = 2,250 total)  
-**Active Plan File**: [`.planning/09-scaled-clinical-benchmark-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/09-scaled-clinical-benchmark-PLAN.md)  
-**Status**: Phase 09 Complete (All 4 Waves Verified & Documented)  
+**Active Phase**: Phase 10: Morphological Sister-Class Disambiguation Guard  
+**Active Plan File**: [`.planning/10-sister-class-morphometry-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/10-sister-class-morphometry-PLAN.md)  
+**Status**: Ready to Execute (Wave 1: Trichometric Morphometry Feature Extraction)  
 
 ---
 
@@ -50,4 +50,4 @@
 ---
 
 ## Next Steps
-* Phase 09 is complete. Ready for next milestone priorities (e.g. Phase 10: Dermoscopic Hair Shaft Caliber Variance Analysis or user requests).
+* Execute Wave 1 of [`.planning/10-sister-class-morphometry-PLAN.md`](file:///g:/Downloads/scalp_project/django_app/.planning/10-sister-class-morphometry-PLAN.md) (Task 1.1, 1.2, 1.3: Trichometric morphometry feature extraction in `detector/trichometry_engine.py`).
